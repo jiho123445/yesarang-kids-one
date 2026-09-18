@@ -1,15 +1,96 @@
-import React from 'react';
-import { Sparkles, ArrowRight, Heart, ShieldCheck, Smile, PhoneCall } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import {
+  Sparkles,
+  ArrowRight,
+  Heart,
+  ShieldCheck,
+  Smile,
+  PhoneCall,
+  Camera,
+  Upload,
+  CheckCircle,
+  X,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MascotBear, MascotSun } from './common/Illustrations';
+import { useData } from '../context/DataContext';
+import { HeroImageModal } from './HeroImageModal';
+import { handleFileUpload } from '../utils/fileUpload';
+import {
+  DEFAULT_HERO_IMAGE,
+  DEFAULT_HERO_BADGE,
+  DEFAULT_HERO_CAPTION,
+} from '../data/heroPresets';
 
 interface HeroSectionProps {
   onOpenConsultation: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenConsultation }) => {
+  const { institution, updateInstitution } = useData();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const directFileInputRef = useRef<HTMLInputElement>(null);
+
+  const heroImage = institution.heroImage || DEFAULT_HERO_IMAGE;
+  const heroBadge = institution.heroBadge || DEFAULT_HERO_BADGE;
+  const heroCaption = institution.heroCaption || DEFAULT_HERO_CAPTION;
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  const handleDirectFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일(JPG, PNG, WebP 등)만 첨부할 수 있습니다.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('10MB 이하의 이미지만 업로드 가능합니다.');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      const dataUrl = await handleFileUpload(file, { maxWidth: 1200, quality: 0.85 });
+      updateInstitution({ heroImage: dataUrl });
+      showToast('홈페이지 대문 이미지가 성공적으로 변경되었습니다.');
+    } catch (err) {
+      console.error(err);
+      alert('이미지 처리 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleDirectFile(file);
+    }
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#F5C451] via-[#F7CF6B] to-[#FCE6A2] pt-8 sm:pt-12 pb-20 sm:pb-24 px-4 sm:px-6 lg:px-8 border-b border-amber-200/50">
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed top-20 right-4 sm:right-8 z-50 flex items-center space-x-2 px-4 py-3 rounded-2xl bg-stone-900 text-white shadow-xl border border-stone-700 animate-in fade-in slide-in-from-top-4">
+          <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span className="text-xs sm:text-sm font-bold">{toastMsg}</span>
+          <button
+            onClick={() => setToastMsg(null)}
+            className="p-1 rounded-lg hover:bg-stone-800 text-stone-400 hover:text-white cursor-pointer ml-2"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
       {/* Decorative background geometric shapes & playful dots */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
         <div className="absolute -top-12 -left-12 w-64 h-64 rounded-full bg-white/40 blur-2xl" />
@@ -122,21 +203,70 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenConsultation }) 
 
             {/* Photo Card with Rounded-3xl and Playful Frame */}
             <div className="relative w-full max-w-md bg-white p-3 sm:p-4 rounded-3xl shadow-xl border-4 border-white/90 transform hover:-rotate-1 transition-transform duration-300">
-              <div className="relative rounded-2xl overflow-hidden aspect-4/3 bg-amber-100">
+              <div
+                className={`relative group rounded-2xl overflow-hidden aspect-4/3 bg-amber-100 cursor-pointer transition-all duration-200 ${
+                  isDragging ? 'ring-4 ring-amber-500 scale-102' : ''
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                onClick={() => setIsModalOpen(true)}
+                title="클릭하여 대문 대표 이미지 및 문구 변경"
+              >
                 <img
-                  src="https://images.unsplash.com/photo-1596464716127-f2a829822321?w=800&auto=format&fit=crop&q=80"
-                  alt="홍천 예사랑어린이집 활동 모습"
-                  className="w-full h-full object-cover"
+                  src={heroImage}
+                  alt={`${institution.name} 대문 대표 모습`}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-stone-900/75 via-stone-900/20 to-transparent" />
+
+                {/* Top Badge: 대문 사진 변경 트리거 */}
+                <div className="absolute top-3 left-3 z-10">
+                  <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-stone-900/70 hover:bg-stone-900 text-white text-[11px] font-bold shadow-xs backdrop-blur-xs transition-colors">
+                    <Camera className="w-3 h-3 text-amber-300" />
+                    <span>대문 사진 변경</span>
+                  </span>
+                </div>
+
+                {/* Bottom Caption & Badge */}
                 <div className="absolute bottom-3 left-3 right-3 text-white">
                   <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#F0935C] text-[11px] font-bold mb-1 shadow-xs">
-                    숲체험 & 오감놀이
+                    {heroBadge}
                   </span>
                   <p className="text-sm font-bold drop-shadow-xs">
-                    "자연 속에서 마음껏 웃고 뛰노는 우리 아이들"
+                    {heroCaption}
                   </p>
                 </div>
+
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-stone-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-white">
+                  <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-2 shadow-sm">
+                    <Camera className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-sm font-black">대문 대표 사진 변경</p>
+                  <p className="text-[11px] text-amber-200 mt-0.5">
+                    클릭하여 사진 파일 첨부 / 추천 테마 선택 / 문구 수정
+                  </p>
+                </div>
+
+                {/* Drag over state */}
+                {isDragging && (
+                  <div className="absolute inset-0 bg-amber-500/90 text-white flex flex-col items-center justify-center p-4 z-20 animate-in fade-in">
+                    <Upload className="w-10 h-10 animate-bounce mb-2" />
+                    <p className="text-sm font-black">이곳에 새 대문 사진을 놓으세요!</p>
+                  </div>
+                )}
+
+                {/* Processing State */}
+                {isProcessing && (
+                  <div className="absolute inset-0 bg-stone-900/80 text-white flex flex-col items-center justify-center p-4 z-20 animate-in fade-in">
+                    <div className="w-8 h-8 border-3 border-amber-400 border-t-transparent rounded-full animate-spin mb-2" />
+                    <p className="text-xs font-bold">사진을 처리하고 있습니다...</p>
+                  </div>
+                )}
               </div>
 
               {/* Card Footer Badge */}
@@ -145,14 +275,39 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenConsultation }) 
                   <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5" />
                   원아 모집 및 학부모 참관 상시 접수
                 </span>
-                <Link to="/intro/greeting" className="text-[#F0935C] font-bold hover:underline">
-                  원장 인사말 &rarr;
-                </Link>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="text-[#F0935C] font-bold hover:underline inline-flex items-center space-x-1 cursor-pointer"
+                >
+                  <Camera className="w-3 h-3" />
+                  <span>대문 변경</span>
+                </button>
               </div>
+
+              {/* Hidden Direct File Input */}
+              <input
+                ref={directFileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleDirectFile(file);
+                  e.target.value = '';
+                }}
+                className="hidden"
+              />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Hero Image Edit Modal */}
+      <HeroImageModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSavedToast={showToast}
+      />
     </section>
   );
 };

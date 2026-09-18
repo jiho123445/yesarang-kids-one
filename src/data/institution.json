@@ -11,6 +11,9 @@
   "operatingHours": "월~금 07:30 ~ 19:30 (맞춤·연장보육 포함)",
   "capacity": "정원 55명 / 현원 48명",
   "establishedDate": "2012년 3월 2일",
+  "heroImage": "https://images.unsplash.com/photo-1596464716127-f2a829822321?w=800&auto=format&fit=crop&q=80",
+  "heroBadge": "숲체험 & 오감놀이",
+  "heroCaption": "자연 속에서 마음껏 웃고 뛰노는 우리 아이들",
   "visitorStats": {
     "today": 128,
     "total": 48290
@@ -23,7 +26,8 @@
       "자연을 닮은 맑은 웃음, 친구를 배려하는 따뜻한 마음, 매일 새로운 것을 스스로 찾아내는 호기심 가득한 눈동자—우리 예사랑 교직원 일동은 부모님의 마음으로 아이들과 눈을 맞추며, 사랑과 신뢰로 하루하루를 함께 걷겠습니다.",
       "학부모님들의 지속적인 관심과 사랑에 감사드리며, 언제나 문이 활짝 열려있는 소통의 공간이 되겠습니다."
     ],
-    "sign": "홍천 예사랑어린이집 원장 김희정 올림"
+    "sign": "홍천 예사랑어린이집 원장 김희정 올림",
+    "directorPhoto": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80"
   },
   "philosophy": [
     {

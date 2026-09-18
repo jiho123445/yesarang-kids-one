@@ -140,6 +140,9 @@ export interface InstitutionData {
   operatingHours: string;
   capacity: string;
   establishedDate: string;
+  heroImage?: string;
+  heroBadge?: string;
+  heroCaption?: string;
   visitorStats: {
     today: number;
     total: number;
@@ -148,6 +151,7 @@ export interface InstitutionData {
     title: string;
     paragraphs: string[];
     sign: string;
+    directorPhoto?: string;
   };
   philosophy: InstitutionPhilosophy[];
   classes: InstitutionClass[];

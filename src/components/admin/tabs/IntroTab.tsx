@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
-import { Save, Building, Users, Heart, Phone, MapPin, Plus, Trash2, Edit3, CheckCircle2 } from 'lucide-react';
+import { Save, Building, Users, Heart, Phone, MapPin, Plus, Trash2, Edit3, CheckCircle2, RotateCcw, Camera, Sparkles, Check } from 'lucide-react';
 import { useData } from '../../../context/DataContext';
 import { TeacherInfo, FacilityRoom } from '../../../types';
 import { FileUpload } from '../../common/FileUpload';
 import { ConfirmDialog } from '../ConfirmDialog';
+import {
+  DEFAULT_HERO_IMAGE,
+  DEFAULT_HERO_BADGE,
+  DEFAULT_HERO_CAPTION,
+  HERO_PRESETS,
+} from '../../../data/heroPresets';
 
 export const IntroTab: React.FC = () => {
   const {
@@ -19,7 +25,7 @@ export const IntroTab: React.FC = () => {
     deleteFacility,
   } = useData();
 
-  const [activeSubSection, setActiveSubSection] = useState<'basic' | 'greeting' | 'teachers' | 'facilities'>('basic');
+  const [activeSubSection, setActiveSubSection] = useState<'basic' | 'hero' | 'greeting' | 'teachers' | 'facilities'>('basic');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
   // Form states for Institution Basic
@@ -37,11 +43,19 @@ export const IntroTab: React.FC = () => {
     establishedDate: institution.establishedDate,
   });
 
+  // Form state for Homepage Hero (대문 대표 이미지)
+  const [heroForm, setHeroForm] = useState({
+    heroImage: institution.heroImage || DEFAULT_HERO_IMAGE,
+    heroBadge: institution.heroBadge || DEFAULT_HERO_BADGE,
+    heroCaption: institution.heroCaption || DEFAULT_HERO_CAPTION,
+  });
+
   // Form state for Greeting
   const [greetingForm, setGreetingForm] = useState({
     title: institution.greeting.title,
     paragraphs: institution.greeting.paragraphs.join('\n\n'),
     sign: institution.greeting.sign,
+    directorPhoto: institution.greeting.directorPhoto || '',
   });
 
   // Modal states for Teacher
@@ -79,6 +93,16 @@ export const IntroTab: React.FC = () => {
     showNotification('어린이집 기본 정보가 성공적으로 저장되었습니다.');
   };
 
+  const handleSaveHero = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateInstitution({
+      heroImage: heroForm.heroImage,
+      heroBadge: heroForm.heroBadge.trim() || DEFAULT_HERO_BADGE,
+      heroCaption: heroForm.heroCaption.trim() || DEFAULT_HERO_CAPTION,
+    });
+    showNotification('홈페이지 대문 이미지가 성공적으로 저장되었습니다.');
+  };
+
   const handleSaveGreeting = (e: React.FormEvent) => {
     e.preventDefault();
     updateInstitution({
@@ -86,9 +110,10 @@ export const IntroTab: React.FC = () => {
         title: greetingForm.title,
         paragraphs: greetingForm.paragraphs.split('\n\n').map(p => p.trim()).filter(Boolean),
         sign: greetingForm.sign,
+        directorPhoto: greetingForm.directorPhoto,
       },
     });
-    showNotification('원장 인사말이 성공적으로 저장되었습니다.');
+    showNotification('원장 인사말 및 실제 사진이 성공적으로 저장되었습니다.');
   };
 
   // Teacher handlers
@@ -200,6 +225,7 @@ export const IntroTab: React.FC = () => {
       <div className="flex flex-wrap gap-2 border-b border-stone-200 pb-4">
         {[
           { id: 'basic', label: '기관 기본정보 / 연락처', icon: Building },
+          { id: 'hero', label: '대문 대표 이미지', icon: Camera },
           { id: 'greeting', label: '원장 인사말', icon: Heart },
           { id: 'teachers', label: '교직원 구성', icon: Users },
           { id: 'facilities', label: '시설 현황', icon: MapPin },
@@ -330,9 +356,268 @@ export const IntroTab: React.FC = () => {
         </form>
       )}
 
+      {/* Hero Banner (대문 대표 이미지) Form */}
+      {activeSubSection === 'hero' && (
+        <form onSubmit={handleSaveHero} className="space-y-6 text-xs bg-white p-6 rounded-2xl border border-stone-200 shadow-2xs">
+          <div>
+            <h4 className="text-sm font-black text-stone-900 flex items-center space-x-2">
+              <Camera className="w-4 h-4 text-[#F0935C]" />
+              <span>홈페이지 대문(Hero) 대표 이미지 및 문구 관리</span>
+            </h4>
+            <p className="text-stone-500 text-[11px] mt-1">
+              홈페이지 최상단 첫 화면에 노출되는 대표 활동 사진, 뱃지 키워드, 슬로건 캡션을 등록하고 변경할 수 있습니다.
+            </p>
+          </div>
+
+          {/* Current Live Preview */}
+          <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-stone-800 text-xs flex items-center">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 mr-1" />
+                현재 설정된 대문 미리보기
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setHeroForm({
+                    heroImage: DEFAULT_HERO_IMAGE,
+                    heroBadge: DEFAULT_HERO_BADGE,
+                    heroCaption: DEFAULT_HERO_CAPTION,
+                  });
+                }}
+                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-xl bg-white border border-stone-200 text-stone-600 font-bold hover:bg-stone-100 transition-colors cursor-pointer"
+                title="기본 사진으로 되돌리기"
+              >
+                <RotateCcw className="w-3 h-3 text-stone-500" />
+                <span>기본값 복원</span>
+              </button>
+            </div>
+
+            <div className="relative rounded-2xl overflow-hidden aspect-16/9 sm:aspect-21/9 max-w-2xl mx-auto border-2 border-amber-300 shadow-md bg-stone-900">
+              <img
+                src={heroForm.heroImage}
+                alt="대문 미리보기"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/20 to-transparent" />
+              <div className="absolute bottom-3 left-3 right-3 text-white">
+                <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#F0935C] text-[11px] font-bold mb-1 shadow-xs">
+                  {heroForm.heroBadge}
+                </span>
+                <p className="text-sm sm:text-base font-black drop-shadow-sm">
+                  {heroForm.heroCaption}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Method 1: Local File Upload */}
+          <div className="space-y-2">
+            <label className="block font-bold text-stone-800 text-xs">
+              1. 내 컴퓨터 / 스마트폰에서 실제 사진 파일 첨부
+            </label>
+            <FileUpload
+              value={heroForm.heroImage}
+              isImageOnly={true}
+              accept="image/*"
+              label="대문 사진 파일 첨부 (드래그 & 드롭 가능)"
+              helperText="어린이집 전경, 아이들 숲체험 또는 원내 대표 활동 사진 (최대 10MB, 자동 최적화)"
+              onChange={(dataUrl) => {
+                setHeroForm(prev => ({ ...prev, heroImage: dataUrl }));
+              }}
+              onClear={() => {
+                setHeroForm(prev => ({ ...prev, heroImage: DEFAULT_HERO_IMAGE }));
+              }}
+            />
+          </div>
+
+          {/* Method 2: Curated Presets */}
+          <div className="space-y-2">
+            <label className="block font-bold text-stone-800 text-xs">
+              2. 추천 어린이집 테마 사진 선택 ({HERO_PRESETS.length}선)
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {HERO_PRESETS.map((preset) => {
+                const isSelected = heroForm.heroImage === preset.imageUrl;
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => {
+                      setHeroForm({
+                        heroImage: preset.imageUrl,
+                        heroBadge: preset.badge,
+                        heroCaption: preset.caption,
+                      });
+                    }}
+                    className={`p-2.5 rounded-2xl border-2 text-left flex space-x-3 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-[#F0935C] bg-amber-50 ring-2 ring-[#F0935C]/20'
+                        : 'border-stone-200 hover:border-amber-300 bg-white'
+                    }`}
+                  >
+                    <div className="relative w-16 h-14 rounded-xl overflow-hidden shrink-0 bg-stone-100">
+                      <img
+                        src={preset.imageUrl}
+                        alt={preset.title}
+                        className="w-full h-full object-cover"
+                      />
+                      {isSelected && (
+                        <div className="absolute inset-0 bg-[#F0935C]/80 flex items-center justify-center text-white">
+                          <Check className="w-4 h-4 stroke-[3]" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-stone-100 text-stone-700 inline-block mb-0.5">
+                        {preset.badge}
+                      </span>
+                      <p className="text-xs font-bold text-stone-900 truncate">
+                        {preset.title}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Method 3: Direct URL Input */}
+          <div className="space-y-2">
+            <label className="block font-bold text-stone-800 text-xs">
+              3. 또는 이미지 웹 주소(URL) 직접 입력
+            </label>
+            <input
+              type="url"
+              value={heroForm.heroImage.startsWith('data:') ? '' : heroForm.heroImage}
+              onChange={(e) => setHeroForm(prev => ({ ...prev, heroImage: e.target.value }))}
+              placeholder="https://... 이미지 웹 주소 입력"
+              className="w-full p-2.5 rounded-xl border border-stone-200"
+            />
+          </div>
+
+          {/* Badge and Caption Editing */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-stone-100">
+            <div>
+              <label className="block font-bold text-stone-700 mb-1">
+                대문 뱃지 문구
+              </label>
+              <input
+                type="text"
+                value={heroForm.heroBadge}
+                onChange={(e) => setHeroForm(prev => ({ ...prev, heroBadge: e.target.value }))}
+                placeholder="예: 숲체험 & 오감놀이"
+                className="w-full p-2.5 rounded-xl border border-stone-200"
+              />
+            </div>
+
+            <div>
+              <label className="block font-bold text-stone-700 mb-1">
+                대표 캡션 문구
+              </label>
+              <input
+                type="text"
+                value={heroForm.heroCaption}
+                onChange={(e) => setHeroForm(prev => ({ ...prev, heroCaption: e.target.value }))}
+                placeholder="예: 자연 속에서 마음껏 웃고 뛰노는 우리 아이들"
+                className="w-full p-2.5 rounded-xl border border-stone-200"
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 flex items-center justify-between border-t border-stone-100">
+            <button
+              type="button"
+              onClick={() => {
+                setHeroForm({
+                  heroImage: DEFAULT_HERO_IMAGE,
+                  heroBadge: DEFAULT_HERO_BADGE,
+                  heroCaption: DEFAULT_HERO_CAPTION,
+                });
+              }}
+              className="inline-flex items-center space-x-1 px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold transition-colors cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>기본 테마로 복원</span>
+            </button>
+
+            <button
+              type="submit"
+              className="inline-flex items-center space-x-1.5 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#F5C451] to-[#F0935C] text-stone-950 font-black shadow-md hover:brightness-105 transition-all cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              <span>대문 이미지 설정 저장</span>
+            </button>
+          </div>
+        </form>
+      )}
+
       {/* 2. Greeting Form */}
       {activeSubSection === 'greeting' && (
         <form onSubmit={handleSaveGreeting} className="space-y-4 text-xs bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
+          {/* Director Actual Photo Section */}
+          <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center space-x-1.5">
+                  <Camera className="w-4 h-4 text-[#F0935C]" />
+                  <label className="font-bold text-stone-800 text-xs">
+                    원장 실제 사진 첨부 및 등록
+                  </label>
+                </div>
+                <p className="text-[11px] text-stone-500 mt-0.5">
+                  인사말 페이지에 표시될 원장님의 실제 프로필 사진을 등록하세요. (JPG, PNG, WebP 등 지원)
+                </p>
+              </div>
+
+              {greetingForm.directorPhoto && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setGreetingForm({
+                      ...greetingForm,
+                      directorPhoto: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80',
+                    })
+                  }
+                  className="self-start sm:self-auto inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-stone-600 bg-white hover:bg-stone-100 border border-stone-200 transition-colors cursor-pointer"
+                  title="기본 샘플 사진으로 되돌리기"
+                >
+                  <RotateCcw className="w-3 h-3 text-stone-500" />
+                  <span>기본 사진 복원</span>
+                </button>
+              )}
+            </div>
+
+            <FileUpload
+              value={greetingForm.directorPhoto}
+              fileName={greetingForm.directorPhoto ? '원장님_실제사진.jpg' : undefined}
+              onChange={(dataUrl) => {
+                setGreetingForm(prev => ({ ...prev, directorPhoto: dataUrl }));
+              }}
+              onClear={() => {
+                setGreetingForm(prev => ({ ...prev, directorPhoto: '' }));
+              }}
+              isImageOnly={true}
+              accept="image/*"
+              label=""
+              helperText="컴퓨터나 스마트폰의 실제 사진 파일을 선택하거나 이곳에 끌어다 놓으세요 (최대 10MB, 자동 최적화)"
+            />
+
+            {/* URL input fallback */}
+            <div className="pt-1">
+              <label className="block text-[11px] font-bold text-stone-600 mb-1">
+                또는 외부 이미지 웹 주소 (URL) 직접 입력:
+              </label>
+              <input
+                type="url"
+                placeholder="https://... 이미지 링크 주소"
+                value={greetingForm.directorPhoto}
+                onChange={e => setGreetingForm({ ...greetingForm, directorPhoto: e.target.value })}
+                className="w-full p-2.5 text-xs rounded-xl border border-stone-200 bg-white"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block font-bold text-stone-700 mb-1">인사말 대표 제목</label>
             <input

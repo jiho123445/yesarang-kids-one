@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Heart,
@@ -15,10 +15,17 @@ import {
   Building,
   Users,
   Edit2,
+  Camera,
+  Upload,
+  RotateCcw,
+  X,
+  Image as ImageIcon,
+  CheckCircle,
 } from 'lucide-react';
 import introDetails from '../data/introDetails.json';
 import { MascotSun, MascotBear } from '../components/common/Illustrations';
 import { useData } from '../context/DataContext';
+import { handleFileUpload } from '../utils/fileUpload';
 
 const TABS = [
   { id: 'greeting', label: '인사말', path: '/intro/greeting' },
@@ -29,9 +36,103 @@ const TABS = [
   { id: 'location', label: '오시는길', path: '/intro/location' },
 ];
 
+const DEFAULT_DIRECTOR_PHOTO = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80';
+
 export const IntroPage: React.FC = () => {
   const { subtab = 'greeting' } = useParams<{ subtab?: string }>();
-  const { institution, isAdmin, openAdminWithTab } = useData();
+  const { institution, isAdmin, openAdminWithTab, updateInstitution } = useData();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const modalFileInputRef = useRef<HTMLInputElement>(null);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+  const [photoToast, setPhotoToast] = useState<string | null>(null);
+  const [urlInput, setUrlInput] = useState('');
+
+  const currentPhoto = institution.greeting?.directorPhoto || DEFAULT_DIRECTOR_PHOTO;
+  const isCustomPhoto = Boolean(
+    institution.greeting?.directorPhoto &&
+      institution.greeting.directorPhoto !== DEFAULT_DIRECTOR_PHOTO
+  );
+
+  const showPhotoToast = (msg: string) => {
+    setPhotoToast(msg);
+    setTimeout(() => setPhotoToast(null), 3500);
+  };
+
+  const processAndSavePhoto = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일(JPG, PNG, WebP 등)만 첨부할 수 있습니다.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('파일 크기는 10MB 이하의 이미지만 등록 가능합니다.');
+      return;
+    }
+
+    try {
+      setIsProcessingPhoto(true);
+      const dataUrl = await handleFileUpload(file, { maxWidth: 1000, quality: 0.85 });
+      updateInstitution({
+        greeting: {
+          ...institution.greeting,
+          directorPhoto: dataUrl,
+        },
+      });
+      showPhotoToast('원장님의 실제 사진이 성공적으로 등록되었습니다.');
+      setIsPhotoModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert('사진을 처리하는 중 오류가 발생했습니다. 다른 사진으로 시도해 주세요.');
+    } finally {
+      setIsProcessingPhoto(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processAndSavePhoto(file);
+    }
+    e.target.value = '';
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingPhoto(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processAndSavePhoto(file);
+    }
+  };
+
+  const handleResetPhoto = () => {
+    if (window.confirm('기본 예시 사진으로 복원하시겠습니까?')) {
+      updateInstitution({
+        greeting: {
+          ...institution.greeting,
+          directorPhoto: DEFAULT_DIRECTOR_PHOTO,
+        },
+      });
+      showPhotoToast('기본 예시 사진으로 복원되었습니다.');
+      setIsPhotoModalOpen(false);
+    }
+  };
+
+  const handleSaveUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!urlInput.trim()) return;
+    updateInstitution({
+      greeting: {
+        ...institution.greeting,
+        directorPhoto: urlInput.trim(),
+      },
+    });
+    setUrlInput('');
+    setIsPhotoModalOpen(false);
+    showPhotoToast('원장님 사진 웹 주소가 저장되었습니다.');
+  };
 
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -88,19 +189,128 @@ export const IntroPage: React.FC = () => {
       {/* Subtab 1: 인사말 */}
       {subtab === 'greeting' && (
         <div className="space-y-8 animate-in fade-in duration-200">
+          {/* Toast Notification */}
+          {photoToast && (
+            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-emerald-500 text-white shadow-md animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-5 h-5 shrink-0" />
+                <span className="text-sm font-bold">{photoToast}</span>
+              </div>
+              <button
+                onClick={() => setPhotoToast(null)}
+                className="p-1 rounded-lg hover:bg-emerald-600 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-lg border border-amber-100 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-4 flex flex-col items-center text-center">
-              <div className="relative w-52 h-52 sm:w-60 sm:h-60 rounded-3xl overflow-hidden shadow-md border-4 border-amber-100 bg-amber-50">
+              {/* Photo Box with Drag & Drop & Hover Overlay */}
+              <div
+                className={`relative group w-52 h-52 sm:w-60 sm:h-60 rounded-3xl overflow-hidden shadow-md border-4 transition-all duration-200 cursor-pointer ${
+                  isDraggingPhoto
+                    ? 'border-amber-500 ring-4 ring-amber-300 scale-102'
+                    : 'border-amber-100 hover:border-amber-300 bg-amber-50'
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDraggingPhoto(true);
+                }}
+                onDragLeave={() => setIsDraggingPhoto(false)}
+                onDrop={handleDrop}
+                onClick={() => setIsPhotoModalOpen(true)}
+                title="클릭하여 원장님 실제 사진 첨부/변경"
+              >
                 <img
-                  src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80"
+                  src={currentPhoto}
                   alt={`${institution.name} ${institution.director} 원장`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
+
+                {/* Hover overlay hint */}
+                <div className="absolute inset-0 bg-stone-950/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-white">
+                  <div className="w-10 h-10 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center mb-1.5 shadow-sm">
+                    <Camera className="w-5 h-5 text-white" />
+                  </div>
+                  <p className="text-xs font-black">원장 실제 사진 첨부</p>
+                  <p className="text-[10px] text-amber-200 mt-0.5">클릭 또는 사진 드래그&드롭</p>
+                </div>
+
+                {/* Drag over overlay */}
+                {isDraggingPhoto && (
+                  <div className="absolute inset-0 bg-amber-500/90 text-white flex flex-col items-center justify-center p-4 z-20 animate-in fade-in">
+                    <Upload className="w-8 h-8 animate-bounce mb-2" />
+                    <p className="text-xs font-black">이곳에 사진 파일을 놓으세요</p>
+                  </div>
+                )}
+
+                {/* Processing overlay */}
+                {isProcessingPhoto && (
+                  <div className="absolute inset-0 bg-stone-900/80 text-white flex flex-col items-center justify-center p-4 z-20 animate-in fade-in">
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mb-2" />
+                    <p className="text-xs font-bold">사진 처리 중...</p>
+                  </div>
+                )}
+
+                {/* Status badge */}
+                <div className="absolute top-2.5 left-2.5 z-10">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 backdrop-blur-xs text-stone-700 shadow-2xs">
+                    {isCustomPhoto ? '실제 사진 적용됨' : '예시 프로필'}
+                  </span>
+                </div>
               </div>
+
+              {/* Director Info */}
               <div className="mt-4">
                 <span className="text-xs font-bold text-[#F0935C] block">{institution.name} 원장</span>
                 <span className="text-xl font-black text-stone-900">{institution.director}</span>
               </div>
+
+              {/* Action Buttons */}
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#F5C451] to-[#F0935C] text-stone-950 text-xs font-black shadow-xs hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+                  title="내 기기에서 사진 파일 직접 선택"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>실제 사진 첨부</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsPhotoModalOpen(true)}
+                  className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+                  title="사진 상세 관리 및 웹 주소 입력"
+                >
+                  <Upload className="w-3.5 h-3.5 text-stone-500" />
+                  <span>상세 관리</span>
+                </button>
+
+                {isCustomPhoto && (
+                  <button
+                    type="button"
+                    onClick={handleResetPhoto}
+                    className="inline-flex items-center space-x-1 px-2 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-medium transition-colors cursor-pointer"
+                    title="기본 샘플 사진으로 되돌리기"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>기본 복원</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="hidden"
+              />
             </div>
 
             <div className="lg:col-span-8 space-y-4 text-stone-700 leading-relaxed text-sm sm:text-base">
@@ -339,6 +549,132 @@ export const IntroPage: React.FC = () => {
                   길 찾기가 어려우신 경우 원무실({institution.phone})로 전화 주시면 친절하게 안내해 드립니다.
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Director Photo Upload / Edit Modal */}
+      {isPhotoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-950/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl shadow-2xl border border-stone-200 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-amber-50/50">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500 text-stone-950 flex items-center justify-center font-bold shadow-xs">
+                  <Camera className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-stone-900">원장 실제 사진 첨부 및 관리</h3>
+                  <p className="text-xs text-stone-500">원장 인사말에 노출될 실제 프로필 사진을 등록합니다</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPhotoModalOpen(false)}
+                className="p-1.5 rounded-xl hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 text-xs">
+              {/* Current Preview */}
+              <div className="flex items-center space-x-4 p-4 rounded-2xl bg-stone-50 border border-stone-200">
+                <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-amber-300 bg-amber-100 shrink-0 shadow-xs">
+                  <img
+                    src={currentPhoto}
+                    alt="현재 원장 사진"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-stone-900 text-sm">{institution.director} 원장</p>
+                  <p className="text-stone-500 text-[11px] mt-0.5">
+                    {isCustomPhoto ? '사용자 등록 실제 사진 적용 중' : '기본 예시 프로필 이미지 사용 중'}
+                  </p>
+                  {isCustomPhoto && (
+                    <button
+                      type="button"
+                      onClick={handleResetPhoto}
+                      className="mt-2 inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-white border border-stone-200 text-stone-600 font-bold hover:bg-stone-100 transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3 text-stone-500" />
+                      <span>기본 사진으로 복원</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Method 1: Local File Upload / Drag & Drop */}
+              <div>
+                <label className="block font-bold text-stone-800 text-xs mb-1.5">
+                  1. 내 기기(컴퓨터/스마트폰)에서 실제 사진 파일 첨부
+                </label>
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDraggingPhoto(true);
+                  }}
+                  onDragLeave={() => setIsDraggingPhoto(false)}
+                  onDrop={handleDrop}
+                  onClick={() => modalFileInputRef.current?.click()}
+                  className={`p-6 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                    isDraggingPhoto
+                      ? 'border-amber-500 bg-amber-50'
+                      : 'border-stone-300 hover:border-amber-400 bg-stone-50/50 hover:bg-amber-50/30'
+                  }`}
+                >
+                  <Upload className="w-8 h-8 text-amber-600 mb-2" />
+                  <p className="font-black text-stone-900 text-xs">
+                    이곳을 클릭하여 사진을 선택하거나 드래그하여 첨부하세요
+                  </p>
+                  <p className="text-stone-500 text-[11px] mt-1">
+                    JPG, PNG, WebP 등 이미지 파일 (최대 10MB, 자동 용량 최적화)
+                  </p>
+                  <input
+                    ref={modalFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
+              {/* Method 2: Image URL input */}
+              <div>
+                <label className="block font-bold text-stone-800 text-xs mb-1.5">
+                  2. 또는 웹 이미지 링크(URL) 직접 입력
+                </label>
+                <form onSubmit={handleSaveUrl} className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://... 이미지 웹 주소"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    className="flex-1 p-2.5 rounded-xl border border-stone-200 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!urlInput.trim()}
+                    className="px-4 py-2.5 rounded-xl bg-stone-900 text-white font-bold text-xs hover:bg-stone-800 disabled:opacity-40 transition-colors cursor-pointer"
+                  >
+                    URL 등록
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3.5 bg-stone-50 border-t border-stone-100 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setIsPhotoModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 font-bold text-xs hover:bg-stone-100 transition-colors cursor-pointer"
+              >
+                닫기
+              </button>
             </div>
           </div>
         </div>

@@ -63,6 +63,27 @@ const SETTINGS_DOC = {
   INTRO: doc(db, 'settings', 'intro'),
 } as const;
 
+/**
+ * Firestore는 필드 값으로 undefined를 허용하지 않습니다 (addDoc/updateDoc/setDoc이 예외를 던짐).
+ * 관리자 탭들에서 "값이 없으면 undefined"로 채워 넘기는 경우가 많아서,
+ * 모든 쓰기 직전에 이 함수로 undefined 필드를 (배열/중첩 객체 포함) 재귀적으로 제거합니다.
+ */
+function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map(v => stripUndefined(v)) as unknown as T;
+  }
+  if (value && typeof value === 'object' && !(value instanceof Date)) {
+    const result: Record<string, unknown> = {};
+    Object.entries(value as Record<string, unknown>).forEach(([key, v]) => {
+      if (v !== undefined) {
+        result[key] = stripUndefined(v);
+      }
+    });
+    return result as T;
+  }
+  return value;
+}
+
 interface DataContextType {
   // Data states
   notices: NoticeItem[];
@@ -295,10 +316,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // CRUD: Notices
   const addNotice = async (item: Omit<NoticeItem, 'id' | 'views'>) => {
-    await addDoc(collection(db, COLLECTIONS.NOTICES), { ...item, views: 1, _order: Date.now() });
+    await addDoc(collection(db, COLLECTIONS.NOTICES), stripUndefined({ ...item, views: 1, _order: Date.now() }));
   };
   const updateNotice = async (id: string, updated: Partial<NoticeItem>) => {
-    await updateDoc(doc(db, COLLECTIONS.NOTICES, id), updated as Record<string, unknown>);
+    await updateDoc(doc(db, COLLECTIONS.NOTICES, id), stripUndefined(updated as Record<string, unknown>));
   };
   const deleteNotice = async (id: string) => {
     await deleteDoc(doc(db, COLLECTIONS.NOTICES, id));
@@ -306,10 +327,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // CRUD: Newsletters
   const addNewsletter = async (item: Omit<NewsletterItem, 'id' | 'views'>) => {
-    await addDoc(collection(db, COLLECTIONS.NEWSLETTERS), { ...item, views: 1, _order: Date.now() });
+    await addDoc(collection(db, COLLECTIONS.NEWSLETTERS), stripUndefined({ ...item, views: 1, _order: Date.now() }));
   };
   const updateNewsletter = async (id: string, updated: Partial<NewsletterItem>) => {
-    await updateDoc(doc(db, COLLECTIONS.NEWSLETTERS, id), updated as Record<string, unknown>);
+    await updateDoc(doc(db, COLLECTIONS.NEWSLETTERS, id), stripUndefined(updated as Record<string, unknown>));
   };
   const deleteNewsletter = async (id: string) => {
     await deleteDoc(doc(db, COLLECTIONS.NEWSLETTERS, id));
@@ -317,10 +338,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // CRUD: Meals
   const addMeal = async (item: Omit<MealItem, 'id'>) => {
-    await addDoc(collection(db, COLLECTIONS.MEALS), { ...item, _order: Date.now() });
+    await addDoc(collection(db, COLLECTIONS.MEALS), stripUndefined({ ...item, _order: Date.now() }));
   };
   const updateMeal = async (id: string, updated: Partial<MealItem>) => {
-    await updateDoc(doc(db, COLLECTIONS.MEALS, id), updated as Record<string, unknown>);
+    await updateDoc(doc(db, COLLECTIONS.MEALS, id), stripUndefined(updated as Record<string, unknown>));
   };
   const deleteMeal = async (id: string) => {
     await deleteDoc(doc(db, COLLECTIONS.MEALS, id));
@@ -328,10 +349,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // CRUD: Nutrition Newsletters
   const addNutritionNewsletter = async (item: Omit<NutritionNewsletter, 'id'>) => {
-    await addDoc(collection(db, COLLECTIONS.NUTRITION_NEWSLETTERS), { ...item, _order: Date.now() });
+    await addDoc(collection(db, COLLECTIONS.NUTRITION_NEWSLETTERS), stripUndefined({ ...item, _order: Date.now() }));
   };
   const updateNutritionNewsletter = async (id: string, updated: Partial<NutritionNewsletter>) => {
-    await updateDoc(doc(db, COLLECTIONS.NUTRITION_NEWSLETTERS, id), updated as Record<string, unknown>);
+    await updateDoc(doc(db, COLLECTIONS.NUTRITION_NEWSLETTERS, id), stripUndefined(updated as Record<string, unknown>));
   };
   const deleteNutritionNewsletter = async (id: string) => {
     await deleteDoc(doc(db, COLLECTIONS.NUTRITION_NEWSLETTERS, id));
@@ -339,10 +360,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // CRUD: Gallery
   const addGalleryItem = async (item: Omit<GalleryItem, 'id' | 'likeCount'>) => {
-    await addDoc(collection(db, COLLECTIONS.GALLERY), { ...item, likeCount: 0, _order: Date.now() });
+    await addDoc(collection(db, COLLECTIONS.GALLERY), stripUndefined({ ...item, likeCount: 0, _order: Date.now() }));
   };
   const updateGalleryItem = async (id: string, updated: Partial<GalleryItem>) => {
-    await updateDoc(doc(db, COLLECTIONS.GALLERY, id), updated as Record<string, unknown>);
+    await updateDoc(doc(db, COLLECTIONS.GALLERY, id), stripUndefined(updated as Record<string, unknown>));
   };
   const deleteGalleryItem = async (id: string) => {
     await deleteDoc(doc(db, COLLECTIONS.GALLERY, id));
@@ -353,10 +374,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // CRUD: Events
   const addEvent = async (item: Omit<CalendarEvent, 'id'>) => {
-    await addDoc(collection(db, COLLECTIONS.EVENTS), { ...item, _order: Date.now() });
+    await addDoc(collection(db, COLLECTIONS.EVENTS), stripUndefined({ ...item, _order: Date.now() }));
   };
   const updateEvent = async (id: string, updated: Partial<CalendarEvent>) => {
-    await updateDoc(doc(db, COLLECTIONS.EVENTS, id), updated as Record<string, unknown>);
+    await updateDoc(doc(db, COLLECTIONS.EVENTS, id), stripUndefined(updated as Record<string, unknown>));
   };
   const deleteEvent = async (id: string) => {
     await deleteDoc(doc(db, COLLECTIONS.EVENTS, id));
@@ -364,7 +385,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // CRUD: Institution & Intro (설정값은 문서 하나에 통째로 저장 — merge로 부분 갱신)
   const updateInstitution = async (data: Partial<InstitutionData>) => {
-    await setDoc(SETTINGS_DOC.INSTITUTION, data, { merge: true });
+    await setDoc(SETTINGS_DOC.INSTITUTION, stripUndefined(data as Record<string, unknown>), { merge: true });
   };
 
   const updateClasses = async (newClasses: InstitutionClass[], renameMap?: Record<string, string>) => {
@@ -393,17 +414,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateIntroDetails = async (data: Partial<IntroDetailsData>) => {
-    await setDoc(SETTINGS_DOC.INTRO, data, { merge: true });
+    await setDoc(SETTINGS_DOC.INTRO, stripUndefined(data as Record<string, unknown>), { merge: true });
   };
 
   const addTeacher = async (teacher: Omit<TeacherInfo, 'id'>) => {
     const newTeacher: TeacherInfo = { ...teacher, id: `t-${Date.now()}` };
-    await setDoc(SETTINGS_DOC.INTRO, { teachers: [...introDetails.teachers, newTeacher] }, { merge: true });
+    await setDoc(SETTINGS_DOC.INTRO, stripUndefined({ teachers: [...introDetails.teachers, newTeacher] }), { merge: true });
   };
 
   const updateTeacher = async (id: string, updated: Partial<TeacherInfo>) => {
     const teachers = introDetails.teachers.map(t => (t.id === id ? { ...t, ...updated } : t));
-    await setDoc(SETTINGS_DOC.INTRO, { teachers }, { merge: true });
+    await setDoc(SETTINGS_DOC.INTRO, stripUndefined({ teachers }), { merge: true });
   };
 
   const deleteTeacher = async (id: string) => {
@@ -413,12 +434,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addFacility = async (facility: Omit<FacilityRoom, 'id'>) => {
     const newFac: FacilityRoom = { ...facility, id: `fac-${Date.now()}` };
-    await setDoc(SETTINGS_DOC.INTRO, { facilities: [...introDetails.facilities, newFac] }, { merge: true });
+    await setDoc(SETTINGS_DOC.INTRO, stripUndefined({ facilities: [...introDetails.facilities, newFac] }), { merge: true });
   };
 
   const updateFacility = async (id: string, updated: Partial<FacilityRoom>) => {
     const facilities = introDetails.facilities.map(f => (f.id === id ? { ...f, ...updated } : f));
-    await setDoc(SETTINGS_DOC.INTRO, { facilities }, { merge: true });
+    await setDoc(SETTINGS_DOC.INTRO, stripUndefined({ facilities }), { merge: true });
   };
 
   const deleteFacility = async (id: string) => {

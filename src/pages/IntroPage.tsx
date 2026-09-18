@@ -209,7 +209,7 @@ export const IntroPage: React.FC = () => {
             <div className="lg:col-span-4 flex flex-col items-center text-center">
               {/* Photo Box with Drag & Drop & Hover Overlay */}
               <div
-                className={`relative group w-52 h-52 sm:w-60 sm:h-60 rounded-3xl overflow-hidden shadow-md border-4 transition-all duration-200 ${
+                className={`relative group w-52 h-64 sm:w-64 sm:h-80 rounded-3xl overflow-hidden shadow-md border-4 transition-all duration-200 ${
                   isAdmin ? 'cursor-pointer' : ''
                 } ${
                   isDraggingPhoto
@@ -229,7 +229,7 @@ export const IntroPage: React.FC = () => {
                 <img
                   src={currentPhoto}
                   alt={`${institution.name} ${institution.director} 원장`}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
                 />
 
                 {isAdmin && (
@@ -258,13 +258,6 @@ export const IntroPage: React.FC = () => {
                         <p className="text-xs font-bold">사진 처리 중...</p>
                       </div>
                     )}
-
-                    {/* Status badge */}
-                    <div className="absolute top-2.5 left-2.5 z-10">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 backdrop-blur-xs text-stone-700 shadow-2xs">
-                        {isCustomPhoto ? '실제 사진 적용됨' : '예시 프로필'}
-                      </span>
-                    </div>
                   </>
                 )}
               </div>

@@ -209,19 +209,22 @@ export const IntroPage: React.FC = () => {
             <div className="lg:col-span-4 flex flex-col items-center text-center">
               {/* Photo Box with Drag & Drop & Hover Overlay */}
               <div
-                className={`relative group w-52 h-52 sm:w-60 sm:h-60 rounded-3xl overflow-hidden shadow-md border-4 transition-all duration-200 cursor-pointer ${
+                className={`relative group w-52 h-52 sm:w-60 sm:h-60 rounded-3xl overflow-hidden shadow-md border-4 transition-all duration-200 ${
+                  isAdmin ? 'cursor-pointer' : ''
+                } ${
                   isDraggingPhoto
                     ? 'border-amber-500 ring-4 ring-amber-300 scale-102'
                     : 'border-amber-100 hover:border-amber-300 bg-amber-50'
                 }`}
                 onDragOver={(e) => {
+                  if (!isAdmin) return;
                   e.preventDefault();
                   setIsDraggingPhoto(true);
                 }}
-                onDragLeave={() => setIsDraggingPhoto(false)}
-                onDrop={handleDrop}
-                onClick={() => setIsPhotoModalOpen(true)}
-                title="클릭하여 원장님 실제 사진 첨부/변경"
+                onDragLeave={() => isAdmin && setIsDraggingPhoto(false)}
+                onDrop={isAdmin ? handleDrop : undefined}
+                onClick={() => isAdmin && setIsPhotoModalOpen(true)}
+                title={isAdmin ? '클릭하여 원장님 실제 사진 첨부/변경' : undefined}
               >
                 <img
                   src={currentPhoto}
@@ -229,37 +232,41 @@ export const IntroPage: React.FC = () => {
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
 
-                {/* Hover overlay hint */}
-                <div className="absolute inset-0 bg-stone-950/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-white">
-                  <div className="w-10 h-10 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center mb-1.5 shadow-sm">
-                    <Camera className="w-5 h-5 text-white" />
-                  </div>
-                  <p className="text-xs font-black">원장 실제 사진 첨부</p>
-                  <p className="text-[10px] text-amber-200 mt-0.5">클릭 또는 사진 드래그&드롭</p>
-                </div>
+                {isAdmin && (
+                  <>
+                    {/* Hover overlay hint */}
+                    <div className="absolute inset-0 bg-stone-950/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-white">
+                      <div className="w-10 h-10 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center mb-1.5 shadow-sm">
+                        <Camera className="w-5 h-5 text-white" />
+                      </div>
+                      <p className="text-xs font-black">원장 실제 사진 첨부</p>
+                      <p className="text-[10px] text-amber-200 mt-0.5">클릭 또는 사진 드래그&드롭</p>
+                    </div>
 
-                {/* Drag over overlay */}
-                {isDraggingPhoto && (
-                  <div className="absolute inset-0 bg-amber-500/90 text-white flex flex-col items-center justify-center p-4 z-20 animate-in fade-in">
-                    <Upload className="w-8 h-8 animate-bounce mb-2" />
-                    <p className="text-xs font-black">이곳에 사진 파일을 놓으세요</p>
-                  </div>
+                    {/* Drag over overlay */}
+                    {isDraggingPhoto && (
+                      <div className="absolute inset-0 bg-amber-500/90 text-white flex flex-col items-center justify-center p-4 z-20 animate-in fade-in">
+                        <Upload className="w-8 h-8 animate-bounce mb-2" />
+                        <p className="text-xs font-black">이곳에 사진 파일을 놓으세요</p>
+                      </div>
+                    )}
+
+                    {/* Processing overlay */}
+                    {isProcessingPhoto && (
+                      <div className="absolute inset-0 bg-stone-900/80 text-white flex flex-col items-center justify-center p-4 z-20 animate-in fade-in">
+                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mb-2" />
+                        <p className="text-xs font-bold">사진 처리 중...</p>
+                      </div>
+                    )}
+
+                    {/* Status badge */}
+                    <div className="absolute top-2.5 left-2.5 z-10">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 backdrop-blur-xs text-stone-700 shadow-2xs">
+                        {isCustomPhoto ? '실제 사진 적용됨' : '예시 프로필'}
+                      </span>
+                    </div>
+                  </>
                 )}
-
-                {/* Processing overlay */}
-                {isProcessingPhoto && (
-                  <div className="absolute inset-0 bg-stone-900/80 text-white flex flex-col items-center justify-center p-4 z-20 animate-in fade-in">
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mb-2" />
-                    <p className="text-xs font-bold">사진 처리 중...</p>
-                  </div>
-                )}
-
-                {/* Status badge */}
-                <div className="absolute top-2.5 left-2.5 z-10">
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/90 backdrop-blur-xs text-stone-700 shadow-2xs">
-                    {isCustomPhoto ? '실제 사진 적용됨' : '예시 프로필'}
-                  </span>
-                </div>
               </div>
 
               {/* Director Info */}
@@ -269,39 +276,41 @@ export const IntroPage: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#F5C451] to-[#F0935C] text-stone-950 text-xs font-black shadow-xs hover:brightness-105 active:scale-95 transition-all cursor-pointer"
-                  title="내 기기에서 사진 파일 직접 선택"
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                  <span>실제 사진 첨부</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsPhotoModalOpen(true)}
-                  className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 text-xs font-bold shadow-2xs transition-colors cursor-pointer"
-                  title="사진 상세 관리 및 웹 주소 입력"
-                >
-                  <Upload className="w-3.5 h-3.5 text-stone-500" />
-                  <span>상세 관리</span>
-                </button>
-
-                {isCustomPhoto && (
+              {isAdmin && (
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                   <button
                     type="button"
-                    onClick={handleResetPhoto}
-                    className="inline-flex items-center space-x-1 px-2 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-medium transition-colors cursor-pointer"
-                    title="기본 샘플 사진으로 되돌리기"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#F5C451] to-[#F0935C] text-stone-950 text-xs font-black shadow-xs hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+                    title="내 기기에서 사진 파일 직접 선택"
                   >
-                    <RotateCcw className="w-3 h-3" />
-                    <span>기본 복원</span>
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>실제 사진 첨부</span>
                   </button>
-                )}
-              </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPhotoModalOpen(true)}
+                    className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+                    title="사진 상세 관리 및 웹 주소 입력"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-stone-500" />
+                    <span>상세 관리</span>
+                  </button>
+
+                  {isCustomPhoto && (
+                    <button
+                      type="button"
+                      onClick={handleResetPhoto}
+                      className="inline-flex items-center space-x-1 px-2 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 text-xs font-medium transition-colors cursor-pointer"
+                      title="기본 샘플 사진으로 되돌리기"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>기본 복원</span>
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Hidden file input */}
               <input

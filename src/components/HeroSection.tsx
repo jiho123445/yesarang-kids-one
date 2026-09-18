@@ -26,7 +26,7 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenConsultation }) => {
-  const { institution, updateInstitution } = useData();
+  const { institution, updateInstitution, isAdmin } = useData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -203,17 +203,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenConsultation }) 
             {/* Photo Card with Rounded-3xl and Playful Frame */}
             <div className="relative w-full max-w-md bg-white p-3 sm:p-4 rounded-3xl shadow-xl border-4 border-white/90 transform hover:-rotate-1 transition-transform duration-300">
               <div
-                className={`relative group rounded-2xl overflow-hidden aspect-4/3 bg-amber-100 cursor-pointer transition-all duration-200 ${
-                  isDragging ? 'ring-4 ring-amber-500 scale-102' : ''
-                }`}
+                className={`relative group rounded-2xl overflow-hidden aspect-4/3 bg-amber-100 transition-all duration-200 ${
+                  isAdmin ? 'cursor-pointer' : ''
+                } ${isDragging ? 'ring-4 ring-amber-500 scale-102' : ''}`}
                 onDragOver={(e) => {
+                  if (!isAdmin) return;
                   e.preventDefault();
                   setIsDragging(true);
                 }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={handleDrop}
-                onClick={() => setIsModalOpen(true)}
-                title="클릭하여 대문 대표 이미지 및 문구 변경"
+                onDragLeave={() => isAdmin && setIsDragging(false)}
+                onDrop={isAdmin ? handleDrop : undefined}
+                onClick={() => isAdmin && setIsModalOpen(true)}
+                title={isAdmin ? '클릭하여 대문 대표 이미지 및 문구 변경' : undefined}
               >
                 <img
                   src={heroImage}

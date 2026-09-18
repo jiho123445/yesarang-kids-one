@@ -12,7 +12,7 @@ export const SettingsTab: React.FC = () => {
 
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPwMessage(null);
 
@@ -21,7 +21,7 @@ export const SettingsTab: React.FC = () => {
       return;
     }
 
-    const res = changePassword(currentPw, newPw);
+    const res = await changePassword(currentPw, newPw);
     if (res.success) {
       setPwMessage({ type: 'success', text: '관리자 비밀번호가 성공적으로 변경되었습니다.' });
       setCurrentPw('');

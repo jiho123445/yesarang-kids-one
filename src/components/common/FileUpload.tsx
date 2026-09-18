@@ -3,15 +3,17 @@ import { Upload, X, FileText, Image as ImageIcon, CheckCircle, AlertCircle, Refr
 import { handleFileUpload, formatFileSize } from '../../utils/fileUpload';
 
 interface FileUploadProps {
-  value?: string; // Data URL or URL
+  value?: string; // Storage 다운로드 URL
   fileName?: string;
-  onChange: (fileDataUrl: string, fileName: string, fileSize?: number) => void;
+  onChange: (fileUrl: string, fileName: string, fileSize?: number) => void;
   onClear?: () => void;
   accept?: string;
   label?: string;
   helperText?: string;
   isImageOnly?: boolean;
   maxSizeMB?: number;
+  /** Firebase Storage 내 저장 폴더 (예: 'notices', 'gallery', 'meals') */
+  folder: string;
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
@@ -24,6 +26,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   helperText = 'JPG, PNG, WebP 또는 PDF 문서 (최대 10MB)',
   isImageOnly = false,
   maxSizeMB = 10,
+  folder,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -49,11 +52,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
     try {
       setIsProcessing(true);
-      const dataUrl = await handleFileUpload(file);
-      onChange(dataUrl, file.name, file.size);
+      const downloadUrl = await handleFileUpload(file, folder);
+      onChange(downloadUrl, file.name, file.size);
     } catch (err) {
-      console.error('File read error:', err);
-      setErrorMessage('파일을 처리하는 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.error('File upload error:', err);
+      setErrorMessage('파일 업로드 중 오류가 발생했습니다. 네트워크를 확인 후 다시 시도해 주세요.');
     } finally {
       setIsProcessing(false);
     }
@@ -139,9 +142,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                   {fileName || (isImage ? '첨부된 이미지' : '첨부 문서')}
                 </p>
               </div>
-              <p className="text-[11px] text-stone-500 mt-0.5">
-                {value.startsWith('data:') ? '로컬 첨부 완료 (클라우드/스토리지 연동 준비됨)' : '기존 등록 파일'}
-              </p>
+              <p className="text-[11px] text-stone-500 mt-0.5">업로드 완료</p>
             </div>
           </div>
 
@@ -180,7 +181,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           {isProcessing ? (
             <div className="flex flex-col items-center justify-center py-2 space-y-2 text-stone-600">
               <RefreshCw className="w-6 h-6 animate-spin text-amber-500" />
-              <p className="text-xs font-semibold">파일을 읽어오는 중입니다...</p>
+              <p className="text-xs font-semibold">파일을 업로드하는 중입니다...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center space-y-2">

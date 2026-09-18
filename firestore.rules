@@ -1,0 +1,53 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 어린이집은 관리자가 사실상 원장님/교사 1인이므로,
+    // "로그인되어 있다 = 관리자다"로 취급합니다. (Firebase Authentication에 별도 가입 절차 없이
+    // 콘솔에서 직접 생성한 단일 관리자 계정만 존재)
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+    // 공지사항 / 가정통신문 / 식단 / 영양소식지 / 갤러리 / 행사
+    match /notices/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /newsletters/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /meals/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /nutritionNewsletters/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /gallery/{docId} {
+      allow read: if true;
+      // 좋아요(likeCount)는 누구나 누를 수 있게 하되, likeCount 외 필드는 바꾸지 못하도록 제한
+      allow update: if isAdmin()
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount']));
+      allow create, delete: if isAdmin();
+    }
+    match /events/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 어린이집 기본정보 / 소개 페이지 설정 (단일 문서)
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 그 외 모든 경로는 기본 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

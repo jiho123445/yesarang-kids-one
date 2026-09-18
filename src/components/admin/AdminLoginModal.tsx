@@ -21,14 +21,18 @@ export const AdminLoginModal: React.FC = () => {
 
   if (!isPasswordModalOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) {
       setErrorMessage('비밀번호를 입력해 주세요.');
       return;
     }
 
-    const res = login(password);
+    setIsSubmitting(true);
+    const res = await login(password);
+    setIsSubmitting(false);
     if (res.success) {
       setIsPasswordModalOpen(false);
       setIsAdminDashboardOpen(true);
@@ -96,10 +100,8 @@ export const AdminLoginModal: React.FC = () => {
               </button>
             </div>
 
-            {/* Default hint for user */}
             <div className="flex items-center justify-between text-[11px] text-stone-400 mt-2 px-1">
-              <span>기본 초기 비밀번호: <strong className="text-amber-700 font-bold">admin1234</strong></span>
-              <span>(대시보드에서 변경 가능)</span>
+              <span>비밀번호는 대시보드 설정 탭에서 변경할 수 있습니다.</span>
             </div>
           </div>
 
@@ -120,9 +122,10 @@ export const AdminLoginModal: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#F5C451] to-[#F0935C] text-stone-950 hover:brightness-105 text-xs sm:text-sm font-black shadow-md transition-all active:scale-98"
+              disabled={isSubmitting}
+              className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-[#F5C451] to-[#F0935C] text-stone-950 hover:brightness-105 text-xs sm:text-sm font-black shadow-md transition-all active:scale-98 disabled:opacity-60"
             >
-              로그인
+              {isSubmitting ? '로그인 중...' : '로그인'}
             </button>
           </div>
         </form>

@@ -73,7 +73,7 @@ export const IntroPage: React.FC = () => {
 
     try {
       setIsProcessingPhoto(true);
-      const dataUrl = await handleFileUpload(file, { maxWidth: 1000, quality: 0.85 });
+      const dataUrl = await handleFileUpload(file, 'intro/director', { maxWidth: 1000, quality: 0.85 });
       updateInstitution({
         greeting: {
           ...institution.greeting,

@@ -609,6 +609,7 @@ export const IntroTab: React.FC = () => {
               value={heroForm.heroImage}
               isImageOnly={true}
               accept="image/*"
+              folder="intro/hero"
               label="대문 사진 파일 첨부 (드래그 & 드롭 가능)"
               helperText="어린이집 전경, 아이들 숲체험 또는 원내 대표 활동 사진 (최대 10MB, 자동 최적화)"
               onChange={(dataUrl) => {
@@ -788,6 +789,7 @@ export const IntroTab: React.FC = () => {
               }}
               isImageOnly={true}
               accept="image/*"
+              folder="intro/director"
               label=""
               helperText="컴퓨터나 스마트폰의 실제 사진 파일을 선택하거나 이곳에 끌어다 놓으세요 (최대 10MB, 자동 최적화)"
             />
@@ -1328,8 +1330,9 @@ export const IntroTab: React.FC = () => {
                   value={facilityForm.imageUrl}
                   fileName={facilityForm.imageName}
                   isImageOnly={true}
+                  folder="intro/facilities"
                   label="시설 사진 첨부 *"
-                  helperText="보육실 및 유희실 사진 (Base64 변환 저장)"
+                  helperText="보육실 및 유희실 사진 (Storage에 업로드)"
                   onChange={(url, name) => {
                     setFacilityForm({ ...facilityForm, imageUrl: url, imageName: name });
                   }}

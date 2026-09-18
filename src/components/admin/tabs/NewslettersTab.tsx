@@ -361,8 +361,9 @@ export const NewslettersTab: React.FC = () => {
                 <FileUpload
                   value={attachmentUrl}
                   fileName={attachmentName}
+                  folder="newsletters"
                   label="통신문 서식/신청서 PDF 문서 첨부"
-                  helperText="PDF, HWP, DOCX 등 첨부 (Base64 변환 후 브라우저 보관)"
+                  helperText="PDF, HWP, DOCX 등 첨부 (Storage에 업로드)"
                   onChange={(url, name) => {
                     setAttachmentUrl(url);
                     setAttachmentName(name);

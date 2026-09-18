@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+    // FileUpload.tsx가 사용하는 폴더들: notices, newsletters, meals,
+    // nutrition-newsletters, gallery, intro/hero, intro/director, intro/facilities
+    match /{folder}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && request.resource.size < 10 * 1024 * 1024; // 최대 10MB
+    }
+  }
+}

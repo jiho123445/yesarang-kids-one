@@ -62,7 +62,7 @@ export const HeroImageModal: React.FC<HeroImageModalProps> = ({
 
     try {
       setIsProcessing(true);
-      const dataUrl = await handleFileUpload(file, { maxWidth: 1200, quality: 0.85 });
+      const dataUrl = await handleFileUpload(file, 'intro/hero', { maxWidth: 1200, quality: 0.85 });
       setSelectedImage(dataUrl);
     } catch (err) {
       console.error(err);

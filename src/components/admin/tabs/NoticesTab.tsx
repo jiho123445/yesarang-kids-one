@@ -345,8 +345,9 @@ export const NoticesTab: React.FC = () => {
                 <FileUpload
                   value={attachmentUrl}
                   fileName={attachmentName}
+                  folder="notices"
                   label="첨부파일 업로드 (문서, 서식, PDF 등)"
-                  helperText="클라우드/스토리지 연동 준비 완료 (Base64 변환 후 브라우저 보관)"
+                  helperText="Firebase Storage에 업로드됩니다"
                   onChange={(url, name) => {
                     setAttachmentUrl(url);
                     setAttachmentName(name);

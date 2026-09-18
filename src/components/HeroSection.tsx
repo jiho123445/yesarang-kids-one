@@ -56,7 +56,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenConsultation }) 
 
     try {
       setIsProcessing(true);
-      const dataUrl = await handleFileUpload(file, { maxWidth: 1200, quality: 0.85 });
+      const dataUrl = await handleFileUpload(file, 'intro/hero', { maxWidth: 1200, quality: 0.85 });
       updateInstitution({ heroImage: dataUrl });
       showToast('홈페이지 대문 이미지가 성공적으로 변경되었습니다.');
     } catch (err) {

@@ -306,8 +306,9 @@ export const GalleryTab: React.FC = () => {
                   value={imageUrl}
                   fileName={imageName}
                   isImageOnly={true}
+                  folder="gallery"
                   label="활동/급식 사진 첨부 *"
-                  helperText="JPG, PNG, WebP 이미지 (자동 리사이즈 & Base64 저장)"
+                  helperText="JPG, PNG, WebP 이미지 (자동 리사이즈 후 Storage 업로드)"
                   onChange={(url, name) => {
                     setImageUrl(url);
                     setImageName(name);

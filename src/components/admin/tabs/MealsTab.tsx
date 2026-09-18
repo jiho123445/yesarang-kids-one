@@ -930,6 +930,7 @@ export const MealsTab: React.FC = () => {
                     setMealImageName('');
                   }}
                   accept="image/*"
+                  folder="meals"
                   helperText="식판 사진을 등록하면 학부모님이 식단표에서 실물 사진을 확인할 수 있습니다."
                 />
               </div>
@@ -1188,6 +1189,7 @@ export const MealsTab: React.FC = () => {
                     setNutritionImageName('');
                   }}
                   accept="image/*"
+                  folder="nutrition-newsletters"
                   helperText="영양 소식지 포스터 이미지나 카드뉴스를 등록하면 학부모 화면에 시각적으로 강조됩니다."
                 />
               </div>

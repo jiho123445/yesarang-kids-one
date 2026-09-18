@@ -1,5 +1,28 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
+  collection,
+  doc,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  setDoc,
+  getDocs,
+  writeBatch,
+  query,
+  orderBy,
+  increment,
+} from 'firebase/firestore';
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from 'firebase/auth';
+import { db, auth, ADMIN_EMAIL } from '../lib/firebase';
+import {
   NoticeItem,
   NewsletterItem,
   MealItem,
@@ -15,7 +38,7 @@ import {
   NutritionNewsletter,
 } from '../types';
 
-// Original default JSON mocks
+// 최초 시딩 전 화면이 비지 않도록 보여줄 기본값(원본 목업 JSON) — 실제 시딩은 scripts/seed-firestore.ts 로 합니다.
 import defaultNotices from '../data/notices.json';
 import defaultNewsletters from '../data/newsletters.json';
 import defaultMeals from '../data/meals.json';
@@ -26,20 +49,19 @@ import defaultPartners from '../data/partners.json';
 import defaultInstitution from '../data/institution.json';
 import defaultIntroDetails from '../data/introDetails.json';
 
-const STORAGE_KEYS = {
-  NOTICES: 'yesarang_notices_v1',
-  NEWSLETTERS: 'yesarang_newsletters_v1',
-  MEALS: 'yesarang_meals_v1',
-  NUTRITION_NEWSLETTERS: 'yesarang_nutrition_newsletters_v1',
-  GALLERY: 'yesarang_gallery_v1',
-  EVENTS: 'yesarang_events_v1',
-  INSTITUTION: 'yesarang_institution_v1',
-  INTRO_DETAILS: 'yesarang_intro_details_v1',
-  IS_ADMIN: 'yesarang_is_admin_v1',
-  ADMIN_PW: 'yesarang_admin_pw_v1',
-};
+const COLLECTIONS = {
+  NOTICES: 'notices',
+  NEWSLETTERS: 'newsletters',
+  MEALS: 'meals',
+  NUTRITION_NEWSLETTERS: 'nutritionNewsletters',
+  GALLERY: 'gallery',
+  EVENTS: 'events',
+} as const;
 
-const DEFAULT_ADMIN_PW = 'admin1234';
+const SETTINGS_DOC = {
+  INSTITUTION: doc(db, 'settings', 'institution'),
+  INTRO: doc(db, 'settings', 'intro'),
+} as const;
 
 interface DataContextType {
   // Data states
@@ -67,226 +89,198 @@ interface DataContextType {
   setAdminEditingItem: (item: any | null) => void;
   openAdminWithTab: (tab: AdminTab, editItem?: any) => void;
 
-  // Auth methods
-  login: (password: string) => { success: boolean; message?: string };
-  logout: () => void;
-  changePassword: (currentPw: string, newPw: string) => { success: boolean; message?: string };
+  // Auth methods (Firebase Authentication 기반, 전부 비동기)
+  login: (password: string) => Promise<{ success: boolean; message?: string }>;
+  logout: () => Promise<void>;
+  changePassword: (currentPw: string, newPw: string) => Promise<{ success: boolean; message?: string }>;
 
-  // Reset to original JSON
-  resetToDefaults: () => void;
+  // 전체 컬렉션 + 설정 문서를 원본 목업 데이터로 되돌림 (Firestore 데이터를 실제로 삭제/재시딩)
+  resetToDefaults: () => Promise<void>;
 
   // CRUD Notices
-  addNotice: (item: Omit<NoticeItem, 'id' | 'views'>) => NoticeItem;
-  updateNotice: (id: string, item: Partial<NoticeItem>) => void;
-  deleteNotice: (id: string) => void;
+  addNotice: (item: Omit<NoticeItem, 'id' | 'views'>) => Promise<void>;
+  updateNotice: (id: string, item: Partial<NoticeItem>) => Promise<void>;
+  deleteNotice: (id: string) => Promise<void>;
 
   // CRUD Newsletters
-  addNewsletter: (item: Omit<NewsletterItem, 'id' | 'views'>) => NewsletterItem;
-  updateNewsletter: (id: string, item: Partial<NewsletterItem>) => void;
-  deleteNewsletter: (id: string) => void;
+  addNewsletter: (item: Omit<NewsletterItem, 'id' | 'views'>) => Promise<void>;
+  updateNewsletter: (id: string, item: Partial<NewsletterItem>) => Promise<void>;
+  deleteNewsletter: (id: string) => Promise<void>;
 
   // CRUD Meals
-  addMeal: (item: Omit<MealItem, 'id'>) => MealItem;
-  updateMeal: (id: string, item: Partial<MealItem>) => void;
-  deleteMeal: (id: string) => void;
+  addMeal: (item: Omit<MealItem, 'id'>) => Promise<void>;
+  updateMeal: (id: string, item: Partial<MealItem>) => Promise<void>;
+  deleteMeal: (id: string) => Promise<void>;
 
   // CRUD Nutrition Newsletters
-  addNutritionNewsletter: (item: Omit<NutritionNewsletter, 'id'>) => NutritionNewsletter;
-  updateNutritionNewsletter: (id: string, item: Partial<NutritionNewsletter>) => void;
-  deleteNutritionNewsletter: (id: string) => void;
+  addNutritionNewsletter: (item: Omit<NutritionNewsletter, 'id'>) => Promise<void>;
+  updateNutritionNewsletter: (id: string, item: Partial<NutritionNewsletter>) => Promise<void>;
+  deleteNutritionNewsletter: (id: string) => Promise<void>;
 
   // CRUD Gallery
-  addGalleryItem: (item: Omit<GalleryItem, 'id' | 'likeCount'>) => GalleryItem;
-  updateGalleryItem: (id: string, item: Partial<GalleryItem>) => void;
-  deleteGalleryItem: (id: string) => void;
-  likeGalleryItem: (id: string) => void;
+  addGalleryItem: (item: Omit<GalleryItem, 'id' | 'likeCount'>) => Promise<void>;
+  updateGalleryItem: (id: string, item: Partial<GalleryItem>) => Promise<void>;
+  deleteGalleryItem: (id: string) => Promise<void>;
+  likeGalleryItem: (id: string) => Promise<void>;
 
   // CRUD Events
-  addEvent: (item: Omit<CalendarEvent, 'id'>) => CalendarEvent;
-  updateEvent: (id: string, item: Partial<CalendarEvent>) => void;
-  deleteEvent: (id: string) => void;
+  addEvent: (item: Omit<CalendarEvent, 'id'>) => Promise<void>;
+  updateEvent: (id: string, item: Partial<CalendarEvent>) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
 
   // CRUD Institution & Intro
-  updateInstitution: (data: Partial<InstitutionData>) => void;
-  updateClasses: (classes: InstitutionClass[], renameMap?: Record<string, string>) => void;
-  updateIntroDetails: (data: Partial<IntroDetailsData>) => void;
-  addTeacher: (teacher: Omit<TeacherInfo, 'id'>) => void;
-  updateTeacher: (id: string, teacher: Partial<TeacherInfo>) => void;
-  deleteTeacher: (id: string) => void;
-  addFacility: (facility: Omit<FacilityRoom, 'id'>) => void;
-  updateFacility: (id: string, facility: Partial<FacilityRoom>) => void;
-  deleteFacility: (id: string) => void;
+  updateInstitution: (data: Partial<InstitutionData>) => Promise<void>;
+  updateClasses: (classes: InstitutionClass[], renameMap?: Record<string, string>) => Promise<void>;
+  updateIntroDetails: (data: Partial<IntroDetailsData>) => Promise<void>;
+  addTeacher: (teacher: Omit<TeacherInfo, 'id'>) => Promise<void>;
+  updateTeacher: (id: string, teacher: Partial<TeacherInfo>) => Promise<void>;
+  deleteTeacher: (id: string) => Promise<void>;
+  addFacility: (facility: Omit<FacilityRoom, 'id'>) => Promise<void>;
+  updateFacility: (id: string, facility: Partial<FacilityRoom>) => Promise<void>;
+  deleteFacility: (id: string) => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Helper to load from localStorage with fallback
-  const loadInitial = <T,>(key: string, fallback: T): T => {
-    try {
-      const item = localStorage.getItem(key);
-      if (item) {
-        return JSON.parse(item);
+/**
+ * 하나의 Firestore 컬렉션을 실시간 구독해 배열 state로 노출하는 공통 훅.
+ * 정렬은 서버 타임스탬프 대신 클라이언트에서 채우는 `_order` 숫자 필드를 사용합니다
+ * (같은 배치 안에서 serverTimestamp가 동일 값으로 찍혀 순서가 꼬이는 문제를 피하기 위함).
+ */
+function useFirestoreCollection<T extends { id: string }>(collectionName: string, fallback: T[]) {
+  const [items, setItems] = useState<T[]>(fallback);
+
+  useEffect(() => {
+    const q = query(collection(db, collectionName), orderBy('_order', 'desc'));
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        setItems(snapshot.docs.map(d => ({ id: d.id, ...d.data() }) as T));
+      },
+      error => {
+        console.error(`[firestore] ${collectionName} 구독 오류`, error);
       }
-    } catch (e) {
-      console.warn(`Failed to parse localStorage for ${key}`, e);
-    }
-    return fallback;
-  };
+    );
+    return unsubscribe;
+  }, [collectionName]);
 
-  // States initialized from localStorage or default JSON files
-  const [notices, setNotices] = useState<NoticeItem[]>(() =>
-    loadInitial(STORAGE_KEYS.NOTICES, defaultNotices as NoticeItem[])
+  return { items, setItems };
+}
+
+export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { items: notices } = useFirestoreCollection<NoticeItem>(COLLECTIONS.NOTICES, defaultNotices as NoticeItem[]);
+  const { items: newsletters } = useFirestoreCollection<NewsletterItem>(
+    COLLECTIONS.NEWSLETTERS,
+    defaultNewsletters as NewsletterItem[]
   );
-  const [newsletters, setNewsletters] = useState<NewsletterItem[]>(() =>
-    loadInitial(STORAGE_KEYS.NEWSLETTERS, defaultNewsletters as NewsletterItem[])
+  const { items: meals } = useFirestoreCollection<MealItem>(COLLECTIONS.MEALS, defaultMeals as MealItem[]);
+  const { items: nutritionNewsletters } = useFirestoreCollection<NutritionNewsletter>(
+    COLLECTIONS.NUTRITION_NEWSLETTERS,
+    defaultNutritionNewsletters as NutritionNewsletter[]
   );
-  const [meals, setMeals] = useState<MealItem[]>(() =>
-    loadInitial(STORAGE_KEYS.MEALS, defaultMeals as MealItem[])
-  );
-  const [nutritionNewsletters, setNutritionNewsletters] = useState<NutritionNewsletter[]>(() =>
-    loadInitial(STORAGE_KEYS.NUTRITION_NEWSLETTERS, defaultNutritionNewsletters as NutritionNewsletter[])
-  );
-  const [gallery, setGallery] = useState<GalleryItem[]>(() =>
-    loadInitial(STORAGE_KEYS.GALLERY, defaultGallery as GalleryItem[])
-  );
-  const [events, setEvents] = useState<CalendarEvent[]>(() =>
-    loadInitial(STORAGE_KEYS.EVENTS, defaultEvents as CalendarEvent[])
-  );
+  const { items: gallery } = useFirestoreCollection<GalleryItem>(COLLECTIONS.GALLERY, defaultGallery as GalleryItem[]);
+  const { items: events } = useFirestoreCollection<CalendarEvent>(COLLECTIONS.EVENTS, defaultEvents as CalendarEvent[]);
+
+  // 파트너 기관 목록은 CRUD 대상이 아니라 정적 설정값이라 Firestore로 옮기지 않고 그대로 둡니다.
   const [partners] = useState<PartnerOrg[]>(defaultPartners as PartnerOrg[]);
-  const [institution, setInstitution] = useState<InstitutionData>(() =>
-    loadInitial(STORAGE_KEYS.INSTITUTION, defaultInstitution as unknown as InstitutionData)
-  );
-  const [introDetails, setIntroDetails] = useState<IntroDetailsData>(() =>
-    loadInitial(STORAGE_KEYS.INTRO_DETAILS, defaultIntroDetails as unknown as IntroDetailsData)
-  );
 
-  // Admin Auth States
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEYS.IS_ADMIN) === 'true';
-    } catch {
-      return false;
-    }
-  });
-  const [adminPassword, setAdminPassword] = useState<string>(() => {
-    try {
-      return localStorage.getItem(STORAGE_KEYS.ADMIN_PW) || DEFAULT_ADMIN_PW;
-    } catch {
-      return DEFAULT_ADMIN_PW;
-    }
-  });
+  const [institution, setInstitution] = useState<InstitutionData>(defaultInstitution as unknown as InstitutionData);
+  const [introDetails, setIntroDetails] = useState<IntroDetailsData>(defaultIntroDetails as unknown as IntroDetailsData);
 
-  // Admin Modals & Navigation state
+  useEffect(() => {
+    const unsub = onSnapshot(SETTINGS_DOC.INSTITUTION, snap => {
+      if (snap.exists()) setInstitution(snap.data() as InstitutionData);
+    }, error => console.error('[firestore] settings/institution 구독 오류', error));
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    const unsub = onSnapshot(SETTINGS_DOC.INTRO, snap => {
+      if (snap.exists()) setIntroDetails(snap.data() as IntroDetailsData);
+    }, error => console.error('[firestore] settings/intro 구독 오류', error));
+    return unsub;
+  }, []);
+
+  // Admin Auth States — Firebase Authentication의 로그인 상태를 그대로 반영
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, user => setIsAdmin(!!user));
+    return unsub;
+  }, []);
+
+  // Admin Modals & Navigation state (로컬 UI 상태이므로 그대로 유지)
   const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>('notices');
   const [adminEditingItem, setAdminEditingItem] = useState<any | null>(null);
 
-  // Auto-sync data changes to localStorage
-  const saveToStorage = (key: string, data: any) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(data));
-    } catch (e) {
-      console.error(`Error saving to localStorage for ${key}`, e);
-    }
-  };
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.NOTICES, notices);
-  }, [notices]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.NEWSLETTERS, newsletters);
-  }, [newsletters]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.MEALS, meals);
-  }, [meals]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.NUTRITION_NEWSLETTERS, nutritionNewsletters);
-  }, [nutritionNewsletters]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.GALLERY, gallery);
-  }, [gallery]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.EVENTS, events);
-  }, [events]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.INSTITUTION, institution);
-  }, [institution]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.INTRO_DETAILS, introDetails);
-  }, [introDetails]);
-
   // Auth methods
-  const login = (password: string) => {
-    if (password === adminPassword) {
-      setIsAdmin(true);
-      try {
-        localStorage.setItem(STORAGE_KEYS.IS_ADMIN, 'true');
-      } catch (e) {
-        console.error(e);
-      }
-      return { success: true };
+  const login = async (password: string) => {
+    if (!ADMIN_EMAIL) {
+      return { success: false, message: '관리자 계정이 설정되지 않았습니다. (VITE_ADMIN_EMAIL 확인)' };
     }
-    return { success: false, message: '비밀번호가 올바르지 않습니다.' };
+    try {
+      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
+      return { success: true };
+    } catch (e) {
+      return { success: false, message: '비밀번호가 올바르지 않습니다.' };
+    }
   };
 
-  const logout = () => {
-    setIsAdmin(false);
+  const logout = async () => {
     setIsAdminDashboardOpen(false);
     setAdminEditingItem(null);
-    try {
-      localStorage.removeItem(STORAGE_KEYS.IS_ADMIN);
-    } catch (e) {
-      console.error(e);
-    }
+    await signOut(auth);
   };
 
-  const changePassword = (currentPw: string, newPw: string) => {
-    if (currentPw !== adminPassword) {
+  const changePassword = async (currentPw: string, newPw: string) => {
+    const user = auth.currentUser;
+    if (!user || !user.email) {
+      return { success: false, message: '로그인이 필요합니다.' };
+    }
+    if (!newPw || newPw.trim().length < 6) {
+      return { success: false, message: '새 비밀번호는 6자리 이상 입력해 주세요.' };
+    }
+    try {
+      const credential = EmailAuthProvider.credential(user.email, currentPw);
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPw);
+      return { success: true };
+    } catch (e) {
       return { success: false, message: '현재 비밀번호가 일치하지 않습니다.' };
     }
-    if (!newPw || newPw.trim().length < 4) {
-      return { success: false, message: '새 비밀번호는 4자리 이상 입력해 주세요.' };
-    }
-    setAdminPassword(newPw);
-    try {
-      localStorage.setItem(STORAGE_KEYS.ADMIN_PW, newPw);
-    } catch (e) {
-      console.error(e);
-    }
-    return { success: true };
   };
 
-  const resetToDefaults = () => {
-    setNotices(defaultNotices as NoticeItem[]);
-    setNewsletters(defaultNewsletters as NewsletterItem[]);
-    setMeals(defaultMeals as MealItem[]);
-    setNutritionNewsletters(defaultNutritionNewsletters as NutritionNewsletter[]);
-    setGallery(defaultGallery as GalleryItem[]);
-    setEvents(defaultEvents as CalendarEvent[]);
-    setInstitution(defaultInstitution as unknown as InstitutionData);
-    setIntroDetails(defaultIntroDetails as unknown as IntroDetailsData);
+  // 6개 컬렉션 + 2개 설정 문서를 원본 목업 데이터로 되돌립니다. 관리자만 접근 가능한 파괴적 작업입니다.
+  const resetToDefaults = async () => {
+    const resetCollection = async (name: string, defaults: any[]) => {
+      const snap = await getDocs(collection(db, name));
+      if (!snap.empty) {
+        const deleteBatch = writeBatch(db);
+        snap.docs.forEach(d => deleteBatch.delete(d.ref));
+        await deleteBatch.commit();
+      }
+      const base = Date.now();
+      const insertBatch = writeBatch(db);
+      defaults.forEach((item, index) => {
+        const { id, ...rest } = item as { id?: string };
+        const newRef = doc(collection(db, name));
+        insertBatch.set(newRef, { ...rest, _order: base - index });
+      });
+      await insertBatch.commit();
+    };
 
-    try {
-      localStorage.removeItem(STORAGE_KEYS.NOTICES);
-      localStorage.removeItem(STORAGE_KEYS.NEWSLETTERS);
-      localStorage.removeItem(STORAGE_KEYS.MEALS);
-      localStorage.removeItem(STORAGE_KEYS.NUTRITION_NEWSLETTERS);
-      localStorage.removeItem(STORAGE_KEYS.GALLERY);
-      localStorage.removeItem(STORAGE_KEYS.EVENTS);
-      localStorage.removeItem(STORAGE_KEYS.INSTITUTION);
-      localStorage.removeItem(STORAGE_KEYS.INTRO_DETAILS);
-    } catch (e) {
-      console.error(e);
-    }
+    await Promise.all([
+      resetCollection(COLLECTIONS.NOTICES, defaultNotices as any[]),
+      resetCollection(COLLECTIONS.NEWSLETTERS, defaultNewsletters as any[]),
+      resetCollection(COLLECTIONS.MEALS, defaultMeals as any[]),
+      resetCollection(COLLECTIONS.NUTRITION_NEWSLETTERS, defaultNutritionNewsletters as any[]),
+      resetCollection(COLLECTIONS.GALLERY, defaultGallery as any[]),
+      resetCollection(COLLECTIONS.EVENTS, defaultEvents as any[]),
+      setDoc(SETTINGS_DOC.INSTITUTION, defaultInstitution as any),
+      setDoc(SETTINGS_DOC.INTRO, defaultIntroDetails as any),
+    ]);
   };
 
   const openAdminWithTab = (tab: AdminTab, editItem?: any) => {
@@ -300,221 +294,136 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // CRUD: Notices
-  const addNotice = (item: Omit<NoticeItem, 'id' | 'views'>): NoticeItem => {
-    const newNotice: NoticeItem = {
-      ...item,
-      id: `notice-${Date.now()}`,
-      views: 1,
-    };
-    setNotices(prev => [newNotice, ...prev]);
-    return newNotice;
+  const addNotice = async (item: Omit<NoticeItem, 'id' | 'views'>) => {
+    await addDoc(collection(db, COLLECTIONS.NOTICES), { ...item, views: 1, _order: Date.now() });
   };
-
-  const updateNotice = (id: string, updated: Partial<NoticeItem>) => {
-    setNotices(prev => prev.map(n => (n.id === id ? { ...n, ...updated } : n)));
+  const updateNotice = async (id: string, updated: Partial<NoticeItem>) => {
+    await updateDoc(doc(db, COLLECTIONS.NOTICES, id), updated as Record<string, unknown>);
   };
-
-  const deleteNotice = (id: string) => {
-    setNotices(prev => prev.filter(n => n.id !== id));
+  const deleteNotice = async (id: string) => {
+    await deleteDoc(doc(db, COLLECTIONS.NOTICES, id));
   };
 
   // CRUD: Newsletters
-  const addNewsletter = (item: Omit<NewsletterItem, 'id' | 'views'>): NewsletterItem => {
-    const newNewsletter: NewsletterItem = {
-      ...item,
-      id: `nl-${Date.now()}`,
-      views: 1,
-    };
-    setNewsletters(prev => [newNewsletter, ...prev]);
-    return newNewsletter;
+  const addNewsletter = async (item: Omit<NewsletterItem, 'id' | 'views'>) => {
+    await addDoc(collection(db, COLLECTIONS.NEWSLETTERS), { ...item, views: 1, _order: Date.now() });
   };
-
-  const updateNewsletter = (id: string, updated: Partial<NewsletterItem>) => {
-    setNewsletters(prev => prev.map(nl => (nl.id === id ? { ...nl, ...updated } : nl)));
+  const updateNewsletter = async (id: string, updated: Partial<NewsletterItem>) => {
+    await updateDoc(doc(db, COLLECTIONS.NEWSLETTERS, id), updated as Record<string, unknown>);
   };
-
-  const deleteNewsletter = (id: string) => {
-    setNewsletters(prev => prev.filter(nl => nl.id !== id));
+  const deleteNewsletter = async (id: string) => {
+    await deleteDoc(doc(db, COLLECTIONS.NEWSLETTERS, id));
   };
 
   // CRUD: Meals
-  const addMeal = (item: Omit<MealItem, 'id'>): MealItem => {
-    const newMeal: MealItem = {
-      ...item,
-      id: `meal-${Date.now()}`,
-    };
-    setMeals(prev => [newMeal, ...prev]);
-    return newMeal;
+  const addMeal = async (item: Omit<MealItem, 'id'>) => {
+    await addDoc(collection(db, COLLECTIONS.MEALS), { ...item, _order: Date.now() });
   };
-
-  const updateMeal = (id: string, updated: Partial<MealItem>) => {
-    setMeals(prev => prev.map(m => (m.id === id ? { ...m, ...updated } : m)));
+  const updateMeal = async (id: string, updated: Partial<MealItem>) => {
+    await updateDoc(doc(db, COLLECTIONS.MEALS, id), updated as Record<string, unknown>);
   };
-
-  const deleteMeal = (id: string) => {
-    setMeals(prev => prev.filter(m => m.id !== id));
+  const deleteMeal = async (id: string) => {
+    await deleteDoc(doc(db, COLLECTIONS.MEALS, id));
   };
 
   // CRUD: Nutrition Newsletters
-  const addNutritionNewsletter = (
-    item: Omit<NutritionNewsletter, 'id'>
-  ): NutritionNewsletter => {
-    const newNewsletter: NutritionNewsletter = {
-      ...item,
-      id: `nutrition-${Date.now()}`,
-    };
-    setNutritionNewsletters(prev => [newNewsletter, ...prev]);
-    return newNewsletter;
+  const addNutritionNewsletter = async (item: Omit<NutritionNewsletter, 'id'>) => {
+    await addDoc(collection(db, COLLECTIONS.NUTRITION_NEWSLETTERS), { ...item, _order: Date.now() });
   };
-
-  const updateNutritionNewsletter = (
-    id: string,
-    updated: Partial<NutritionNewsletter>
-  ) => {
-    setNutritionNewsletters(prev =>
-      prev.map(nl => (nl.id === id ? { ...nl, ...updated } : nl))
-    );
+  const updateNutritionNewsletter = async (id: string, updated: Partial<NutritionNewsletter>) => {
+    await updateDoc(doc(db, COLLECTIONS.NUTRITION_NEWSLETTERS, id), updated as Record<string, unknown>);
   };
-
-  const deleteNutritionNewsletter = (id: string) => {
-    setNutritionNewsletters(prev => prev.filter(nl => nl.id !== id));
+  const deleteNutritionNewsletter = async (id: string) => {
+    await deleteDoc(doc(db, COLLECTIONS.NUTRITION_NEWSLETTERS, id));
   };
 
   // CRUD: Gallery
-  const addGalleryItem = (item: Omit<GalleryItem, 'id' | 'likeCount'>): GalleryItem => {
-    const newGalleryItem: GalleryItem = {
-      ...item,
-      id: `gal-${Date.now()}`,
-      likeCount: 0,
-    };
-    setGallery(prev => [newGalleryItem, ...prev]);
-    return newGalleryItem;
+  const addGalleryItem = async (item: Omit<GalleryItem, 'id' | 'likeCount'>) => {
+    await addDoc(collection(db, COLLECTIONS.GALLERY), { ...item, likeCount: 0, _order: Date.now() });
   };
-
-  const updateGalleryItem = (id: string, updated: Partial<GalleryItem>) => {
-    setGallery(prev => prev.map(g => (g.id === id ? { ...g, ...updated } : g)));
+  const updateGalleryItem = async (id: string, updated: Partial<GalleryItem>) => {
+    await updateDoc(doc(db, COLLECTIONS.GALLERY, id), updated as Record<string, unknown>);
   };
-
-  const deleteGalleryItem = (id: string) => {
-    setGallery(prev => prev.filter(g => g.id !== id));
+  const deleteGalleryItem = async (id: string) => {
+    await deleteDoc(doc(db, COLLECTIONS.GALLERY, id));
   };
-
-  const likeGalleryItem = (id: string) => {
-    setGallery(prev =>
-      prev.map(g => (g.id === id ? { ...g, likeCount: g.likeCount + 1 } : g))
-    );
+  const likeGalleryItem = async (id: string) => {
+    await updateDoc(doc(db, COLLECTIONS.GALLERY, id), { likeCount: increment(1) });
   };
 
   // CRUD: Events
-  const addEvent = (item: Omit<CalendarEvent, 'id'>): CalendarEvent => {
-    const newEvent: CalendarEvent = {
-      ...item,
-      id: `event-${Date.now()}`,
-    };
-    setEvents(prev => [...prev, newEvent]);
-    return newEvent;
+  const addEvent = async (item: Omit<CalendarEvent, 'id'>) => {
+    await addDoc(collection(db, COLLECTIONS.EVENTS), { ...item, _order: Date.now() });
+  };
+  const updateEvent = async (id: string, updated: Partial<CalendarEvent>) => {
+    await updateDoc(doc(db, COLLECTIONS.EVENTS, id), updated as Record<string, unknown>);
+  };
+  const deleteEvent = async (id: string) => {
+    await deleteDoc(doc(db, COLLECTIONS.EVENTS, id));
   };
 
-  const updateEvent = (id: string, updated: Partial<CalendarEvent>) => {
-    setEvents(prev => prev.map(e => (e.id === id ? { ...e, ...updated } : e)));
+  // CRUD: Institution & Intro (설정값은 문서 하나에 통째로 저장 — merge로 부분 갱신)
+  const updateInstitution = async (data: Partial<InstitutionData>) => {
+    await setDoc(SETTINGS_DOC.INSTITUTION, data, { merge: true });
   };
 
-  const deleteEvent = (id: string) => {
-    setEvents(prev => prev.filter(e => e.id !== id));
-  };
+  const updateClasses = async (newClasses: InstitutionClass[], renameMap?: Record<string, string>) => {
+    await setDoc(SETTINGS_DOC.INSTITUTION, { classes: newClasses }, { merge: true });
 
-  // CRUD: Institution & Intro
-  const updateInstitution = (data: Partial<InstitutionData>) => {
-    setInstitution(prev => ({ ...prev, ...data }));
-  };
-
-  const updateClasses = (newClasses: InstitutionClass[], renameMap?: Record<string, string>) => {
-    setInstitution(prev => ({
-      ...prev,
-      classes: newClasses,
-    }));
-
-    // If any class was renamed, propagate to existing items
+    // 반 이름이 변경된 경우, 이미 등록된 가정통신문/갤러리/행사의 targetClass 값도 함께 갱신
     if (renameMap && Object.keys(renameMap).length > 0) {
-      setNewsletters(prev =>
-        prev.map(nl => {
-          if (renameMap[nl.targetClass]) {
-            return { ...nl, targetClass: renameMap[nl.targetClass] };
-          }
-          return nl;
-        })
-      );
-      setGallery(prev =>
-        prev.map(g => {
-          if (g.targetClass && renameMap[g.targetClass]) {
-            return { ...g, targetClass: renameMap[g.targetClass] };
-          }
-          return g;
-        })
-      );
-      setEvents(prev =>
-        prev.map(e => {
-          if (e.targetClass && renameMap[e.targetClass]) {
-            return { ...e, targetClass: renameMap[e.targetClass] };
-          }
-          return e;
-        })
-      );
+      const batch = writeBatch(db);
+      newsletters.forEach(nl => {
+        if (renameMap[nl.targetClass]) {
+          batch.update(doc(db, COLLECTIONS.NEWSLETTERS, nl.id), { targetClass: renameMap[nl.targetClass] });
+        }
+      });
+      gallery.forEach(g => {
+        if (g.targetClass && renameMap[g.targetClass]) {
+          batch.update(doc(db, COLLECTIONS.GALLERY, g.id), { targetClass: renameMap[g.targetClass] });
+        }
+      });
+      events.forEach(e => {
+        if (e.targetClass && renameMap[e.targetClass]) {
+          batch.update(doc(db, COLLECTIONS.EVENTS, e.id), { targetClass: renameMap[e.targetClass] });
+        }
+      });
+      await batch.commit();
     }
   };
 
-  const updateIntroDetails = (data: Partial<IntroDetailsData>) => {
-    setIntroDetails(prev => ({ ...prev, ...data }));
+  const updateIntroDetails = async (data: Partial<IntroDetailsData>) => {
+    await setDoc(SETTINGS_DOC.INTRO, data, { merge: true });
   };
 
-  const addTeacher = (teacher: Omit<TeacherInfo, 'id'>) => {
-    const newTeacher: TeacherInfo = {
-      ...teacher,
-      id: `t-${Date.now()}`,
-    };
-    setIntroDetails(prev => ({
-      ...prev,
-      teachers: [...prev.teachers, newTeacher],
-    }));
+  const addTeacher = async (teacher: Omit<TeacherInfo, 'id'>) => {
+    const newTeacher: TeacherInfo = { ...teacher, id: `t-${Date.now()}` };
+    await setDoc(SETTINGS_DOC.INTRO, { teachers: [...introDetails.teachers, newTeacher] }, { merge: true });
   };
 
-  const updateTeacher = (id: string, updated: Partial<TeacherInfo>) => {
-    setIntroDetails(prev => ({
-      ...prev,
-      teachers: prev.teachers.map(t => (t.id === id ? { ...t, ...updated } : t)),
-    }));
+  const updateTeacher = async (id: string, updated: Partial<TeacherInfo>) => {
+    const teachers = introDetails.teachers.map(t => (t.id === id ? { ...t, ...updated } : t));
+    await setDoc(SETTINGS_DOC.INTRO, { teachers }, { merge: true });
   };
 
-  const deleteTeacher = (id: string) => {
-    setIntroDetails(prev => ({
-      ...prev,
-      teachers: prev.teachers.filter(t => t.id !== id),
-    }));
+  const deleteTeacher = async (id: string) => {
+    const teachers = introDetails.teachers.filter(t => t.id !== id);
+    await setDoc(SETTINGS_DOC.INTRO, { teachers }, { merge: true });
   };
 
-  const addFacility = (facility: Omit<FacilityRoom, 'id'>) => {
-    const newFac: FacilityRoom = {
-      ...facility,
-      id: `fac-${Date.now()}`,
-    };
-    setIntroDetails(prev => ({
-      ...prev,
-      facilities: [...prev.facilities, newFac],
-    }));
+  const addFacility = async (facility: Omit<FacilityRoom, 'id'>) => {
+    const newFac: FacilityRoom = { ...facility, id: `fac-${Date.now()}` };
+    await setDoc(SETTINGS_DOC.INTRO, { facilities: [...introDetails.facilities, newFac] }, { merge: true });
   };
 
-  const updateFacility = (id: string, updated: Partial<FacilityRoom>) => {
-    setIntroDetails(prev => ({
-      ...prev,
-      facilities: prev.facilities.map(f => (f.id === id ? { ...f, ...updated } : f)),
-    }));
+  const updateFacility = async (id: string, updated: Partial<FacilityRoom>) => {
+    const facilities = introDetails.facilities.map(f => (f.id === id ? { ...f, ...updated } : f));
+    await setDoc(SETTINGS_DOC.INTRO, { facilities }, { merge: true });
   };
 
-  const deleteFacility = (id: string) => {
-    setIntroDetails(prev => ({
-      ...prev,
-      facilities: prev.facilities.filter(f => f.id !== id),
-    }));
+  const deleteFacility = async (id: string) => {
+    const facilities = introDetails.facilities.filter(f => f.id !== id);
+    await setDoc(SETTINGS_DOC.INTRO, { facilities }, { merge: true });
   };
 
   return (

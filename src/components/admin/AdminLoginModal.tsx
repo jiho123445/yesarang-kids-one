@@ -7,6 +7,7 @@ export const AdminLoginModal: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -20,8 +21,6 @@ export const AdminLoginModal: React.FC = () => {
   }, [isPasswordModalOpen]);
 
   if (!isPasswordModalOpen) return null;
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

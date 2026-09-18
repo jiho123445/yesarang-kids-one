@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Menu, Search, Phone, ChevronDown, Sparkles } from 'lucide-react';
+import { Menu, Search, Phone, ChevronDown, Sparkles, Lock, ShieldCheck } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { MascotSun } from './common/Illustrations';
+import { useData } from '../context/DataContext';
 
 interface HeaderProps {
   onOpenMobileMenu: () => void;
@@ -73,6 +74,15 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const location = useLocation();
+  const { institution, isAdmin, setIsPasswordModalOpen, setIsAdminDashboardOpen } = useData();
+
+  const handleAdminClick = () => {
+    if (isAdmin) {
+      setIsAdminDashboardOpen(true);
+    } else {
+      setIsPasswordModalOpen(true);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-amber-100/70 shadow-xs transition-shadow">
@@ -84,13 +94,13 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
               2026학년도 원아 상시 상담 중
             </span>
-            <span>운영시간: 평일 07:30 ~ 19:30</span>
+            <span>운영시간: {institution.operatingHours}</span>
             <span className="text-stone-400">|</span>
-            <span>홍천군 홍천읍 연봉로 11</span>
+            <span>{institution.address}</span>
           </div>
           <div className="flex items-center space-x-3 text-stone-600">
-            <a href="tel:033-435-6312" className="hover:text-amber-700 font-medium">
-              대표전화: 033-435-6312
+            <a href={`tel:${institution.phone}`} className="hover:text-amber-700 font-medium">
+              대표전화: {institution.phone}
             </a>
             <span className="text-stone-300">|</span>
             <button
@@ -98,6 +108,29 @@ export const Header: React.FC<HeaderProps> = ({
               className="text-amber-800 font-bold hover:underline cursor-pointer"
             >
               온라인 입소 상담
+            </button>
+            <span className="text-stone-300">|</span>
+            {/* Discreet Admin Login Trigger */}
+            <button
+              onClick={handleAdminClick}
+              className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-md font-semibold transition-colors cursor-pointer ${
+                isAdmin
+                  ? 'bg-amber-200 text-amber-900 hover:bg-amber-300'
+                  : 'text-stone-400 hover:text-stone-700 hover:bg-amber-100/50'
+              }`}
+              title={isAdmin ? '관리자 대시보드 열기' : '원장/교직원 관리자 로그인'}
+            >
+              {isAdmin ? (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
+                  <span>관리자 모드</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3 h-3" />
+                  <span>관리자</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -177,11 +210,11 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="flex flex-col">
               <span className="text-[11px] sm:text-xs font-semibold text-[#F0935C] tracking-tight">
-                사랑과 신뢰로 꿈을 키우는
+                {institution.slogan}
               </span>
               <div className="flex items-baseline space-x-1.5">
                 <span className="text-xl sm:text-2xl font-black tracking-tight text-stone-900 group-hover:text-amber-600 transition-colors">
-                  예사랑어린이집
+                  {institution.shortName || institution.name}
                 </span>
                 <span className="hidden sm:inline-block text-[11px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
                   홍천
@@ -191,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({
           </Link>
 
           {/* Right: Search & Phone & Consultation Action */}
-          <div className="flex items-center space-x-1.5 sm:space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2">
             <button
               id="header-search-btn"
               onClick={onOpenSearch}
@@ -204,13 +237,27 @@ export const Header: React.FC<HeaderProps> = ({
 
             <a
               id="header-call-btn"
-              href="tel:033-435-6312"
+              href={`tel:${institution.phone}`}
               className="p-2.5 rounded-2xl text-[#F0935C] hover:bg-orange-50 transition-colors focus:outline-hidden focus:ring-2 focus:ring-orange-400"
-              aria-label="전화 걸기 033-435-6312"
+              aria-label={`전화 걸기 ${institution.phone}`}
               title="전화 문의"
             >
               <Phone className="w-5 h-5" />
             </a>
+
+            {/* Mobile/Tablet Admin Trigger */}
+            <button
+              onClick={handleAdminClick}
+              className={`p-2 rounded-2xl transition-colors lg:hidden ${
+                isAdmin
+                  ? 'bg-amber-100 text-amber-900 font-bold'
+                  : 'text-stone-400 hover:text-stone-700 hover:bg-stone-100'
+              }`}
+              title={isAdmin ? '관리자 대시보드' : '관리자 로그인'}
+              aria-label="관리자 모드"
+            >
+              <Lock className="w-4 h-4" />
+            </button>
 
             <button
               id="header-consult-cta-btn"

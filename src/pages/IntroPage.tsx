@@ -14,10 +14,11 @@ import {
   CheckCircle2,
   Building,
   Users,
+  Edit2,
 } from 'lucide-react';
-import institutionData from '../data/institution.json';
 import introDetails from '../data/introDetails.json';
 import { MascotSun, MascotBear } from '../components/common/Illustrations';
+import { useData } from '../context/DataContext';
 
 const TABS = [
   { id: 'greeting', label: '인사말', path: '/intro/greeting' },
@@ -30,24 +31,38 @@ const TABS = [
 
 export const IntroPage: React.FC = () => {
   const { subtab = 'greeting' } = useParams<{ subtab?: string }>();
+  const { institution, isAdmin, openAdminWithTab } = useData();
 
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Breadcrumb & Title */}
-      <div className="mb-8 text-center sm:text-left">
-        <div className="inline-flex items-center text-xs font-bold text-[#F0935C] bg-orange-50 px-3 py-1 rounded-full mb-2">
-          <span>어린이집 소개</span>
-          <span className="mx-1.5">/</span>
-          <span className="text-stone-800">
-            {TABS.find(t => t.id === subtab)?.label || '인사말'}
-          </span>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center text-xs font-bold text-[#F0935C] bg-orange-50 px-3 py-1 rounded-full mb-2">
+            <span>어린이집 소개</span>
+            <span className="mx-1.5">/</span>
+            <span className="text-stone-800">
+              {TABS.find(t => t.id === subtab)?.label || '인사말'}
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
+            {institution.name} 소개
+          </h1>
+          <p className="text-sm text-stone-500 mt-1">
+            {institution.slogan} - {institution.subSlogan || '아이들의 따뜻한 배움터'}
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
-          홍천 예사랑어린이집 소개
-        </h1>
-        <p className="text-sm text-stone-500 mt-1">
-          사랑과 신뢰로 꿈을 키우는 따뜻한 배움터입니다.
-        </p>
+
+        {/* Admin Intro Editor Trigger */}
+        {isAdmin && (
+          <button
+            onClick={() => openAdminWithTab('intro')}
+            className="self-start sm:self-auto inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold text-xs sm:text-sm shadow-sm transition-all cursor-pointer"
+          >
+            <Edit2 className="w-4 h-4" />
+            <span>어린이집 기본정보/인사말 편집</span>
+          </button>
+        )}
       </div>
 
       {/* Subtab Navigation Pills */}
@@ -78,27 +93,27 @@ export const IntroPage: React.FC = () => {
               <div className="relative w-52 h-52 sm:w-60 sm:h-60 rounded-3xl overflow-hidden shadow-md border-4 border-amber-100 bg-amber-50">
                 <img
                   src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80"
-                  alt="홍천 예사랑어린이집 김희정 원장"
+                  alt={`${institution.name} ${institution.director} 원장`}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="mt-4">
-                <span className="text-xs font-bold text-[#F0935C] block">홍천 예사랑어린이집 원장</span>
-                <span className="text-xl font-black text-stone-900">김희정</span>
+                <span className="text-xs font-bold text-[#F0935C] block">{institution.name} 원장</span>
+                <span className="text-xl font-black text-stone-900">{institution.director}</span>
               </div>
             </div>
 
             <div className="lg:col-span-8 space-y-4 text-stone-700 leading-relaxed text-sm sm:text-base">
               <h2 className="text-xl sm:text-2xl font-black text-stone-900 leading-snug">
-                "{institutionData.greeting.title}"
+                "{institution.greeting?.title || '아이들의 순수한 눈망울 속에 더 밝은 미래가 자라납니다'}"
               </h2>
-              {institutionData.greeting.paragraphs.map((p, idx) => (
+              {(institution.greeting?.paragraphs || []).map((p, idx) => (
                 <p key={idx} className="leading-loose">
                   {p}
                 </p>
               ))}
               <p className="text-right font-bold text-stone-900 pt-4 text-sm sm:text-base">
-                {institutionData.greeting.sign}
+                {institution.greeting?.sign || `${institution.name} 원장 ${institution.director} 배상`}
               </p>
             </div>
           </div>
@@ -118,7 +133,7 @@ export const IntroPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {institutionData.philosophy.map((item, index) => (
+            {(institution.philosophy || []).map((item, index) => (
               <div
                 key={index}
                 className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-stone-200 flex flex-col justify-between hover:shadow-lg transition-all"
@@ -145,10 +160,10 @@ export const IntroPage: React.FC = () => {
           {/* Class organization list */}
           <div className="mt-12 bg-amber-50/70 rounded-3xl p-6 sm:p-8 border border-amber-200">
             <h3 className="text-lg sm:text-xl font-black text-stone-900 mb-4 text-center sm:text-left">
-              연령별 학급 구성 현황
+              연령별 학급 구성 현황 (총 정원: {institution.capacity}명)
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-              {institutionData.classes.map((cls, idx) => (
+              {(institution.classes || []).map((cls, idx) => (
                 <div key={idx} className="bg-white rounded-2xl p-4 shadow-xs border border-amber-100 text-center">
                   <span className="text-xs font-bold text-[#F0935C] block">{cls.age}</span>
                   <h4 className="text-base font-black text-stone-900 my-1">{cls.name}</h4>
@@ -167,7 +182,7 @@ export const IntroPage: React.FC = () => {
       {subtab === 'history' && (
         <div className="max-w-3xl mx-auto bg-white rounded-3xl p-6 sm:p-10 shadow-md border border-stone-200 animate-in fade-in duration-200">
           <h2 className="text-xl sm:text-2xl font-black text-stone-900 mb-6 text-center">
-            예사랑어린이집 발자취
+            {institution.name} 발자취
           </h2>
           <div className="relative border-l-2 border-[#F0935C]/30 ml-4 sm:ml-6 pl-6 sm:pl-8 space-y-6">
             {introDetails.history.map((h, i) => (
@@ -259,7 +274,7 @@ export const IntroPage: React.FC = () => {
               <div>
                 <span className="text-xs font-bold text-[#F0935C]">오시는 길 안내</span>
                 <h2 className="text-xl sm:text-2xl font-black text-stone-900">
-                  강원특별자치도 홍천군 홍천읍 연봉로 11
+                  {institution.address}
                 </h2>
               </div>
               <a
@@ -285,8 +300,8 @@ export const IntroPage: React.FC = () => {
                 <div className="w-10 h-10 rounded-full bg-[#F0935C] text-white flex items-center justify-center mx-auto mb-2 shadow-xs">
                   <MapPin className="w-5 h-5" />
                 </div>
-                <h4 className="font-black text-stone-900 text-sm">홍천 예사랑어린이집</h4>
-                <p className="text-xs text-stone-600 mt-1">강원특별자치도 홍천군 홍천읍 연봉로 11</p>
+                <h4 className="font-black text-stone-900 text-sm">{institution.name}</h4>
+                <p className="text-xs text-stone-600 mt-1">{institution.address}</p>
                 <span className="inline-block mt-2 text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                   연봉 현대아파트 인근
                 </span>
@@ -321,7 +336,7 @@ export const IntroPage: React.FC = () => {
                   <span>문의 및 길안내</span>
                 </div>
                 <p className="text-xs text-stone-600 leading-relaxed">
-                  길 찾기가 어려우신 경우 원무실(033-435-6312)로 전화 주시면 친절하게 안내해 드립니다.
+                  길 찾기가 어려우신 경우 원무실({institution.phone})로 전화 주시면 친절하게 안내해 드립니다.
                 </p>
               </div>
             </div>

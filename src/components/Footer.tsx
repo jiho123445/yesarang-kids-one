@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
-import { MapPin, Phone, Users, Shield, Award, Heart, Sparkles, ArrowUp } from 'lucide-react';
+import { MapPin, Phone, Users, Shield, Award, Heart, Sparkles, ArrowUp, Lock, ShieldCheck } from 'lucide-react';
 import { MascotSun } from './common/Illustrations';
+import { useData } from '../context/DataContext';
 
 export const Footer: React.FC = () => {
   const [activeModal, setActiveModal] = useState<'privacy' | 'terms' | null>(null);
+  const { institution, isAdmin, setIsPasswordModalOpen, setIsAdminDashboardOpen } = useData();
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAdminClick = () => {
+    if (isAdmin) {
+      setIsAdminDashboardOpen(true);
+    } else {
+      setIsPasswordModalOpen(true);
+    }
   };
 
   return (
@@ -51,12 +61,12 @@ export const Footer: React.FC = () => {
             <div className="flex items-center space-x-3">
               <MascotSun className="w-10 h-10 shrink-0" />
               <div>
-                <span className="text-xs text-[#F0935C] font-bold block">아이들의 따뜻한 배움터</span>
-                <span className="text-lg font-black text-white">홍천 예사랑어린이집</span>
+                <span className="text-xs text-[#F0935C] font-bold block">{institution.subSlogan || '아이들의 따뜻한 배움터'}</span>
+                <span className="text-lg font-black text-white">{institution.name}</span>
               </div>
             </div>
             <p className="text-xs text-stone-400 leading-relaxed">
-              아이의 고유한 개성과 속도를 존중하며 부모님의 마음으로 돌보는 행복한 안심 어린이집입니다.
+              {institution.slogan} - 아이의 고유한 개성과 속도를 존중하며 부모님의 마음으로 돌보는 행복한 안심 어린이집입니다.
             </p>
             <div className="flex items-center space-x-2 text-xs text-stone-400 pt-1">
               <span className="inline-flex items-center px-2 py-0.5 rounded bg-stone-800 text-stone-300 font-medium">
@@ -74,33 +84,33 @@ export const Footer: React.FC = () => {
               <MapPin className="w-4 h-4 text-amber-400 mr-2 shrink-0 mt-0.5" />
               <div>
                 <span className="text-stone-300 font-semibold">주소: </span>
-                강원특별자치도 홍천군 홍천읍 연봉로 11 (우편번호 25134)
+                {institution.address}
               </div>
             </div>
             <div className="flex items-center">
               <Phone className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
               <div>
                 <span className="text-stone-300 font-semibold">대표전화: </span>
-                <a href="tel:033-435-6312" className="hover:text-amber-300 font-bold text-white">
-                  033-435-6312
+                <a href={`tel:${institution.phone}`} className="hover:text-amber-300 font-bold text-white">
+                  {institution.phone}
                 </a>
                 <span className="text-stone-600 mx-2">|</span>
                 <span className="text-stone-300 font-semibold">팩스: </span>
-                033-435-6315
+                {institution.fax}
               </div>
             </div>
             <div className="flex items-center">
               <Users className="w-4 h-4 text-amber-400 mr-2 shrink-0" />
               <div>
                 <span className="text-stone-300 font-semibold">원장: </span>
-                <span className="text-white font-medium">김희정</span>
+                <span className="text-white font-medium">{institution.director}</span>
                 <span className="text-stone-600 mx-2">|</span>
-                <span className="text-stone-300 font-semibold">고유번호: </span>
-                223-82-71049
+                <span className="text-stone-300 font-semibold">인가정원: </span>
+                {institution.capacity}
               </div>
             </div>
             <p className="text-[11px] text-stone-500 pt-1">
-              운영시간: 평일 07:30 ~ 19:30 (기본보육 + 연장보육 포함)
+              운영시간: {institution.operatingHours}
             </p>
           </div>
 
@@ -126,9 +136,29 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Copyright */}
-        <div className="pt-6 border-t border-stone-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-2">
-          <p>© 2026 홍천 예사랑어린이집. All Rights Reserved.</p>
+        {/* Bottom Copyright & Admin Entrance */}
+        <div className="pt-6 border-t border-stone-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <p>© 2026 {institution.name}. All Rights Reserved.</p>
+            <span className="text-stone-700 hidden sm:inline">|</span>
+            {/* Discreet Admin Login Link */}
+            <button
+              onClick={handleAdminClick}
+              className="inline-flex items-center space-x-1 text-stone-500 hover:text-amber-400 transition-colors cursor-pointer py-0.5 px-1 rounded-sm hover:underline"
+            >
+              {isAdmin ? (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-amber-400 font-bold">관리자 CMS 센터</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3 h-3 text-stone-600" />
+                  <span>원장/교직원 관리자 로그인</span>
+                </>
+              )}
+            </button>
+          </div>
           <p className="text-[11px] text-stone-600">
             본 웹사이트는 어린이집 정보 제공 목적으로 제작되었습니다.
           </p>

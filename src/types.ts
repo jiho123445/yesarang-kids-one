@@ -11,6 +11,7 @@ export interface NoticeItem {
   isNew?: boolean;
   hasAttachment?: boolean;
   attachmentName?: string;
+  attachmentUrl?: string; // Data URL or external link
 }
 
 export interface NewsletterItem {
@@ -18,12 +19,13 @@ export interface NewsletterItem {
   title: string;
   summary: string;
   content: string;
-  targetClass: string; // '전체' | '새싹반' | '슬기반' | '지혜반' | '예솔반'
+  targetClass: string; // '전체' | '새싹반' | '줄기반' | '꽃잎반' | '열매반' | '씨앗반' 등
   author: string;
   createdAt: string; // YYYY.MM.DD
   views: number;
   hasAttachment?: boolean;
   attachmentName?: string;
+  attachmentUrl?: string; // Data URL or external link
   isImportant?: boolean;
 }
 
@@ -110,3 +112,58 @@ export interface ConsultationRequest {
   inquiry: string;
   status?: '접수완료' | '상담대기';
 }
+
+export interface InstitutionPhilosophy {
+  title: string;
+  desc: string;
+  color: string;
+  icon: string;
+}
+
+export interface InstitutionClass {
+  name: string;
+  age: string;
+  capacity: string;
+  desc: string;
+}
+
+export interface InstitutionData {
+  name: string;
+  shortName: string;
+  slogan: string;
+  subSlogan: string;
+  director: string;
+  phone: string;
+  fax: string;
+  address: string;
+  postalCode: string;
+  operatingHours: string;
+  capacity: string;
+  establishedDate: string;
+  visitorStats: {
+    today: number;
+    total: number;
+  };
+  greeting: {
+    title: string;
+    paragraphs: string[];
+    sign: string;
+  };
+  philosophy: InstitutionPhilosophy[];
+  classes: InstitutionClass[];
+}
+
+export interface HistoryItem {
+  year: string;
+  content: string;
+}
+
+export interface IntroDetailsData {
+  history: HistoryItem[];
+  teachers: TeacherInfo[];
+  facilities: FacilityRoom[];
+  programs: ProgramInfo[];
+}
+
+export type AdminTab = 'notices' | 'newsletters' | 'gallery' | 'meals' | 'events' | 'intro' | 'settings';
+

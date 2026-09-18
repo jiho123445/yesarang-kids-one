@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar as CalendarIcon, Camera, Video, ChevronLeft, ChevronRight, Clock, MapPin, Heart } from 'lucide-react';
+import { Calendar as CalendarIcon, Camera, Video, ChevronLeft, ChevronRight, Clock, MapPin, Heart, Plus, Edit2, Trash2 } from 'lucide-react';
 import { CalendarEvent, GalleryItem } from '../types';
+import { useData } from '../context/DataContext';
 
 interface EventsPageProps {
   events: CalendarEvent[];
@@ -23,6 +24,7 @@ export const EventsPage: React.FC<EventsPageProps> = ({
   const { subtab = 'monthly' } = useParams<{ subtab?: string }>();
   const [selectedMonth, setSelectedMonth] = useState<number>(3);
   const [selectedCategory, setSelectedCategory] = useState('전체');
+  const { isAdmin, openAdminWithTab, deleteEvent, deleteGalleryItem } = useData();
 
   const filteredEvents = events.filter(e => e.month === selectedMonth);
 
@@ -31,23 +33,50 @@ export const EventsPage: React.FC<EventsPageProps> = ({
     return g.category === selectedCategory;
   });
 
+  const handleDeleteEvent = (e: React.MouseEvent, id: string, title: string) => {
+    e.stopPropagation();
+    if (window.confirm(`"${title}" 일정을 삭제하시겠습니까?`)) {
+      deleteEvent(id);
+    }
+  };
+
+  const handleDeleteGallery = (e: React.MouseEvent, id: string, title: string) => {
+    e.stopPropagation();
+    if (window.confirm(`"${title}" 사진을 삭제하시겠습니까?`)) {
+      deleteGalleryItem(id);
+    }
+  };
+
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Breadcrumb & Title */}
-      <div className="mb-8 text-center sm:text-left">
-        <div className="inline-flex items-center text-xs font-bold text-[#F0935C] bg-orange-50 px-3 py-1 rounded-full mb-2">
-          <span>행사와 일정</span>
-          <span className="mx-1.5">/</span>
-          <span className="text-stone-800">
-            {TABS.find(t => t.id === subtab)?.label || '월간 행사'}
-          </span>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center text-xs font-bold text-[#F0935C] bg-orange-50 px-3 py-1 rounded-full mb-2">
+            <span>행사와 일정</span>
+            <span className="mx-1.5">/</span>
+            <span className="text-stone-800">
+              {TABS.find(t => t.id === subtab)?.label || '월간 행사'}
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
+            예사랑 행사와 일정
+          </h1>
+          <p className="text-sm text-stone-500 mt-1">
+            다채로운 활동과 행복한 추억이 가득한 행사 소식입니다.
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
-          예사랑 행사와 일정
-        </h1>
-        <p className="text-sm text-stone-500 mt-1">
-          다채로운 활동과 행복한 추억이 가득한 행사 소식입니다.
-        </p>
+
+        {/* Admin Quick Action Button */}
+        {isAdmin && (
+          <button
+            onClick={() => openAdminWithTab(subtab === 'gallery' ? 'gallery' : 'events')}
+            className="self-start sm:self-auto inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold text-xs sm:text-sm shadow-sm transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{subtab === 'gallery' ? '사진 업로드' : '새 행사/일정 등록'}</span>
+          </button>
+        )}
       </div>
 
       {/* Subtab Navigation Pills */}
@@ -119,9 +148,29 @@ export const EventsPage: React.FC<EventsPageProps> = ({
                       <span className="px-2.5 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800">
                         {ev.month}월 {ev.day}일
                       </span>
-                      <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-stone-100 text-stone-600">
-                        {ev.category}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-stone-100 text-stone-600">
+                          {ev.category}
+                        </span>
+                        {isAdmin && (
+                          <div className="flex items-center space-x-1 pl-1 border-l border-stone-200">
+                            <button
+                              onClick={() => openAdminWithTab('events')}
+                              className="p-1 rounded text-stone-400 hover:text-amber-700 hover:bg-amber-100"
+                              title="수정"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteEvent(e, ev.id, ev.title)}
+                              className="p-1 rounded text-stone-400 hover:text-rose-600 hover:bg-rose-100"
+                              title="삭제"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <h4 className="text-base font-black text-stone-900 mb-1">{ev.title}</h4>
@@ -186,11 +235,20 @@ export const EventsPage: React.FC<EventsPageProps> = ({
                     {item.category}
                   </span>
                 </div>
-                <div className="absolute top-3 right-3">
+                <div className="absolute top-3 right-3 flex items-center space-x-1">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-black/40 text-white backdrop-blur-xs">
                     <Heart className="w-3 h-3 text-rose-400 fill-rose-400 mr-1" />
                     {item.likeCount}
                   </span>
+                  {isAdmin && (
+                    <button
+                      onClick={(e) => handleDeleteGallery(e, item.id, item.title)}
+                      className="p-1 rounded-full bg-rose-600/90 text-white hover:bg-rose-700 transition-colors shadow-xs"
+                      title="사진 삭제"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-4 text-white">
                   <span className="text-[11px] text-stone-300 block mb-0.5">{item.date}</span>

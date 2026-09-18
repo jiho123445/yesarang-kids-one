@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Search, Bell, Mail, FileText, Paperclip, Eye, Calendar, Sparkles } from 'lucide-react';
+import { Search, Bell, Mail, FileText, Paperclip, Eye, Calendar, Sparkles, Plus, Edit2, Trash2 } from 'lucide-react';
 import { NoticeItem, NewsletterItem } from '../types';
+import { useData } from '../context/DataContext';
 
 interface BoardPageProps {
   notices: NoticeItem[];
@@ -25,6 +26,7 @@ export const BoardPage: React.FC<BoardPageProps> = ({
   const { subtab = 'notice' } = useParams<{ subtab?: string }>();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('전체');
+  const { isAdmin, openAdminWithTab, deleteNotice, deleteNewsletter } = useData();
 
   const filteredNotices = notices.filter(n => {
     const matchesSearch =
@@ -42,23 +44,68 @@ export const BoardPage: React.FC<BoardPageProps> = ({
     return matchesSearch && matchesCat;
   });
 
+  const handleCreateNew = () => {
+    if (subtab === 'notice' || subtab === 'news') {
+      openAdminWithTab('notices');
+    } else {
+      openAdminWithTab('newsletters');
+    }
+  };
+
+  const handleDeleteNotice = (e: React.MouseEvent, id: string, title: string) => {
+    e.stopPropagation();
+    if (window.confirm(`"${title}" 공지사항을 삭제하시겠습니까?`)) {
+      deleteNotice(id);
+    }
+  };
+
+  const handleDeleteNewsletter = (e: React.MouseEvent, id: string, title: string) => {
+    e.stopPropagation();
+    if (window.confirm(`"${title}" 가정통신문을 삭제하시겠습니까?`)) {
+      deleteNewsletter(id);
+    }
+  };
+
+  const handleEditNotice = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    openAdminWithTab('notices');
+  };
+
+  const handleEditNewsletter = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    openAdminWithTab('newsletters');
+  };
+
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Breadcrumb & Title */}
-      <div className="mb-8 text-center sm:text-left">
-        <div className="inline-flex items-center text-xs font-bold text-[#F0935C] bg-orange-50 px-3 py-1 rounded-full mb-2">
-          <span>알림마당</span>
-          <span className="mx-1.5">/</span>
-          <span className="text-stone-800">
-            {TABS.find(t => t.id === subtab)?.label || '공지사항'}
-          </span>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center text-xs font-bold text-[#F0935C] bg-orange-50 px-3 py-1 rounded-full mb-2">
+            <span>알림마당</span>
+            <span className="mx-1.5">/</span>
+            <span className="text-stone-800">
+              {TABS.find(t => t.id === subtab)?.label || '공지사항'}
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
+            예사랑 알림마당
+          </h1>
+          <p className="text-sm text-stone-500 mt-1">
+            원내 중요한 공지사항과 가정통신문을 확인하실 수 있습니다.
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-black text-stone-900 tracking-tight">
-          예사랑 알림마당
-        </h1>
-        <p className="text-sm text-stone-500 mt-1">
-          원내 중요한 공지사항과 가정통신문을 확인하실 수 있습니다.
-        </p>
+
+        {/* Admin Quick Action Button */}
+        {isAdmin && (
+          <button
+            onClick={handleCreateNew}
+            className="self-start sm:self-auto inline-flex items-center space-x-2 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold text-xs sm:text-sm shadow-sm transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{subtab === 'newsletter' ? '가정통신문 등록' : '새 공지사항 등록'}</span>
+          </button>
+        )}
       </div>
 
       {/* Subtab Navigation Pills */}
@@ -135,7 +182,7 @@ export const BoardPage: React.FC<BoardPageProps> = ({
               <p className="font-semibold text-sm">일치하는 공지사항이 없습니다.</p>
             </div>
           ) : (
-            filteredNotices.map((item, idx) => (
+            filteredNotices.map((item) => (
               <div
                 key={item.id}
                 onClick={() => onSelectNotice(item)}
@@ -177,6 +224,26 @@ export const BoardPage: React.FC<BoardPageProps> = ({
                     <Eye className="w-3.5 h-3.5 mr-1" />
                     {item.views}
                   </span>
+
+                  {/* Inline Admin Actions */}
+                  {isAdmin && (
+                    <div className="flex items-center space-x-1 pl-2 border-l border-stone-200">
+                      <button
+                        onClick={(e) => handleEditNotice(e)}
+                        className="p-1 rounded text-stone-500 hover:text-amber-700 hover:bg-amber-100"
+                        title="CMS에서 수정"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteNotice(e, item.id, item.title)}
+                        className="p-1 rounded text-stone-500 hover:text-rose-600 hover:bg-rose-100"
+                        title="삭제"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
@@ -234,6 +301,26 @@ export const BoardPage: React.FC<BoardPageProps> = ({
                     <Eye className="w-3.5 h-3.5 mr-1" />
                     {item.views}
                   </span>
+
+                  {/* Inline Admin Actions */}
+                  {isAdmin && (
+                    <div className="flex items-center space-x-1 pl-2 border-l border-stone-200">
+                      <button
+                        onClick={(e) => handleEditNewsletter(e)}
+                        className="p-1 rounded text-stone-500 hover:text-amber-700 hover:bg-amber-100"
+                        title="CMS에서 수정"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteNewsletter(e, item.id, item.title)}
+                        className="p-1 rounded text-stone-500 hover:text-rose-600 hover:bg-rose-100"
+                        title="삭제"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))

@@ -40,6 +40,7 @@ export const AdminDashboardModal: React.FC = () => {
     newsletters,
     gallery,
     meals,
+    nutritionNewsletters,
     events,
   } = useData();
 
@@ -49,7 +50,7 @@ export const AdminDashboardModal: React.FC = () => {
     { id: 'notices', label: '공지사항 관리', icon: Bell, badgeCount: notices.length },
     { id: 'newsletters', label: '가정통신문 관리', icon: Mail, badgeCount: newsletters.length },
     { id: 'gallery', label: '갤러리 관리', icon: Image, badgeCount: gallery.length },
-    { id: 'meals', label: '식단표 관리', icon: Utensils, badgeCount: meals.length },
+    { id: 'meals', label: '식단·영양 관리', icon: Utensils, badgeCount: meals.length + (nutritionNewsletters ? nutritionNewsletters.length : 0) },
     { id: 'events', label: '행사일정 관리', icon: Calendar, badgeCount: events.length },
     { id: 'intro', label: '원 소개 및 정보', icon: Building },
     { id: 'settings', label: '설정 및 보안', icon: Settings },

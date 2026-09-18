@@ -43,6 +43,26 @@ export interface MealItem {
   todayHighlight?: string;
 }
 
+export interface NutritionNewsletterSection {
+  title: string;
+  content: string;
+  color?: 'emerald' | 'amber' | 'rose' | 'blue' | 'purple';
+}
+
+export interface NutritionNewsletter {
+  id: string;
+  title: string;
+  period: string; // e.g., '2026년 3월호'
+  date: string; // YYYY.MM.DD
+  supervisor: string; // e.g., '홍천군 어린이급식관리지원센터 자문'
+  summary: string;
+  sections: NutritionNewsletterSection[];
+  tips?: string[];
+  imageUrl?: string;
+  attachmentName?: string;
+  attachmentUrl?: string;
+}
+
 export interface GalleryItem {
   id: string;
   title: string;

@@ -12,12 +12,14 @@ import {
   FacilityRoom,
   InstitutionClass,
   AdminTab,
+  NutritionNewsletter,
 } from '../types';
 
 // Original default JSON mocks
 import defaultNotices from '../data/notices.json';
 import defaultNewsletters from '../data/newsletters.json';
 import defaultMeals from '../data/meals.json';
+import defaultNutritionNewsletters from '../data/nutritionNewsletters.json';
 import defaultGallery from '../data/gallery.json';
 import defaultEvents from '../data/events.json';
 import defaultPartners from '../data/partners.json';
@@ -28,6 +30,7 @@ const STORAGE_KEYS = {
   NOTICES: 'yesarang_notices_v1',
   NEWSLETTERS: 'yesarang_newsletters_v1',
   MEALS: 'yesarang_meals_v1',
+  NUTRITION_NEWSLETTERS: 'yesarang_nutrition_newsletters_v1',
   GALLERY: 'yesarang_gallery_v1',
   EVENTS: 'yesarang_events_v1',
   INSTITUTION: 'yesarang_institution_v1',
@@ -43,6 +46,7 @@ interface DataContextType {
   notices: NoticeItem[];
   newsletters: NewsletterItem[];
   meals: MealItem[];
+  nutritionNewsletters: NutritionNewsletter[];
   gallery: GalleryItem[];
   events: CalendarEvent[];
   partners: PartnerOrg[];
@@ -85,6 +89,11 @@ interface DataContextType {
   addMeal: (item: Omit<MealItem, 'id'>) => MealItem;
   updateMeal: (id: string, item: Partial<MealItem>) => void;
   deleteMeal: (id: string) => void;
+
+  // CRUD Nutrition Newsletters
+  addNutritionNewsletter: (item: Omit<NutritionNewsletter, 'id'>) => NutritionNewsletter;
+  updateNutritionNewsletter: (id: string, item: Partial<NutritionNewsletter>) => void;
+  deleteNutritionNewsletter: (id: string) => void;
 
   // CRUD Gallery
   addGalleryItem: (item: Omit<GalleryItem, 'id' | 'likeCount'>) => GalleryItem;
@@ -134,6 +143,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
   const [meals, setMeals] = useState<MealItem[]>(() =>
     loadInitial(STORAGE_KEYS.MEALS, defaultMeals as MealItem[])
+  );
+  const [nutritionNewsletters, setNutritionNewsletters] = useState<NutritionNewsletter[]>(() =>
+    loadInitial(STORAGE_KEYS.NUTRITION_NEWSLETTERS, defaultNutritionNewsletters as NutritionNewsletter[])
   );
   const [gallery, setGallery] = useState<GalleryItem[]>(() =>
     loadInitial(STORAGE_KEYS.GALLERY, defaultGallery as GalleryItem[])
@@ -191,6 +203,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.MEALS, meals);
   }, [meals]);
+
+  useEffect(() => {
+    saveToStorage(STORAGE_KEYS.NUTRITION_NEWSLETTERS, nutritionNewsletters);
+  }, [nutritionNewsletters]);
 
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.GALLERY, gallery);
@@ -253,6 +269,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setNotices(defaultNotices as NoticeItem[]);
     setNewsletters(defaultNewsletters as NewsletterItem[]);
     setMeals(defaultMeals as MealItem[]);
+    setNutritionNewsletters(defaultNutritionNewsletters as NutritionNewsletter[]);
     setGallery(defaultGallery as GalleryItem[]);
     setEvents(defaultEvents as CalendarEvent[]);
     setInstitution(defaultInstitution as unknown as InstitutionData);
@@ -262,6 +279,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem(STORAGE_KEYS.NOTICES);
       localStorage.removeItem(STORAGE_KEYS.NEWSLETTERS);
       localStorage.removeItem(STORAGE_KEYS.MEALS);
+      localStorage.removeItem(STORAGE_KEYS.NUTRITION_NEWSLETTERS);
       localStorage.removeItem(STORAGE_KEYS.GALLERY);
       localStorage.removeItem(STORAGE_KEYS.EVENTS);
       localStorage.removeItem(STORAGE_KEYS.INSTITUTION);
@@ -335,6 +353,31 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteMeal = (id: string) => {
     setMeals(prev => prev.filter(m => m.id !== id));
+  };
+
+  // CRUD: Nutrition Newsletters
+  const addNutritionNewsletter = (
+    item: Omit<NutritionNewsletter, 'id'>
+  ): NutritionNewsletter => {
+    const newNewsletter: NutritionNewsletter = {
+      ...item,
+      id: `nutrition-${Date.now()}`,
+    };
+    setNutritionNewsletters(prev => [newNewsletter, ...prev]);
+    return newNewsletter;
+  };
+
+  const updateNutritionNewsletter = (
+    id: string,
+    updated: Partial<NutritionNewsletter>
+  ) => {
+    setNutritionNewsletters(prev =>
+      prev.map(nl => (nl.id === id ? { ...nl, ...updated } : nl))
+    );
+  };
+
+  const deleteNutritionNewsletter = (id: string) => {
+    setNutritionNewsletters(prev => prev.filter(nl => nl.id !== id));
   };
 
   // CRUD: Gallery
@@ -480,6 +523,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         notices,
         newsletters,
         meals,
+        nutritionNewsletters,
         gallery,
         events,
         partners,
@@ -514,6 +558,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addMeal,
         updateMeal,
         deleteMeal,
+
+        addNutritionNewsletter,
+        updateNutritionNewsletter,
+        deleteNutritionNewsletter,
 
         addGalleryItem,
         updateGalleryItem,

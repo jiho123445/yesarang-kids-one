@@ -6,7 +6,15 @@ import { FileUpload } from '../../common/FileUpload';
 import { ConfirmDialog } from '../ConfirmDialog';
 
 export const GalleryTab: React.FC = () => {
-  const { gallery, addGalleryItem, updateGalleryItem, deleteGalleryItem, adminEditingItem, setAdminEditingItem } = useData();
+  const {
+    gallery,
+    addGalleryItem,
+    updateGalleryItem,
+    deleteGalleryItem,
+    adminEditingItem,
+    setAdminEditingItem,
+    institution,
+  } = useData();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('전체');
   const [isEditing, setIsEditing] = useState(false);
@@ -251,11 +259,9 @@ export const GalleryTab: React.FC = () => {
                     className="w-full p-2.5 rounded-xl border border-stone-200 bg-white font-medium"
                   >
                     <option value="전체">전체 (공통)</option>
-                    <option value="씨앗반">씨앗반</option>
-                    <option value="새싹반">새싹반</option>
-                    <option value="줄기반">줄기반</option>
-                    <option value="꽃잎반">꽃잎반</option>
-                    <option value="열매반">열매반</option>
+                    {(institution.classes || []).map(c => (
+                      <option key={c.name} value={c.name}>{c.name} ({c.age})</option>
+                    ))}
                   </select>
                 </div>
 

@@ -5,7 +5,15 @@ import { CalendarEvent } from '../../../types';
 import { ConfirmDialog } from '../ConfirmDialog';
 
 export const EventsTab: React.FC = () => {
-  const { events, addEvent, updateEvent, deleteEvent, adminEditingItem, setAdminEditingItem } = useData();
+  const {
+    events,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    adminEditingItem,
+    setAdminEditingItem,
+    institution,
+  } = useData();
   const [selectedMonth, setSelectedMonth] = useState<number>(3);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -276,11 +284,9 @@ export const EventsTab: React.FC = () => {
                     className="w-full p-2.5 rounded-xl border border-stone-200 bg-white font-medium"
                   >
                     <option value="전체">전체 (공통)</option>
-                    <option value="씨앗반">씨앗반</option>
-                    <option value="새싹반">새싹반</option>
-                    <option value="줄기반">줄기반</option>
-                    <option value="꽃잎반">꽃잎반</option>
-                    <option value="열매반">열매반</option>
+                    {(institution.classes || []).map(c => (
+                      <option key={c.name} value={c.name}>{c.name} ({c.age})</option>
+                    ))}
                   </select>
                 </div>
 

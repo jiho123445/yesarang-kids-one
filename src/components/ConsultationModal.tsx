@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, CheckCircle2, Phone, Calendar, User, Baby } from 'lucide-react';
 import { MascotSun } from './common/Illustrations';
+import { useData } from '../context/DataContext';
 
 interface ConsultationModalProps {
   isOpen: boolean;
@@ -8,11 +9,14 @@ interface ConsultationModalProps {
 }
 
 export const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose }) => {
+  const { institution } = useData();
+  const defaultClassText = institution.classes?.[2] ? `${institution.classes[2].age} (${institution.classes[2].name})` : '만 2세';
+
   const [formData, setFormData] = useState({
     parentName: '',
     phone: '',
     childName: '',
-    childAge: '만 2세 (줄기반)',
+    childAge: defaultClassText,
     preferredDate: '',
     memo: '',
   });
@@ -152,12 +156,12 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, on
                     onChange={e => setFormData({ ...formData, childAge: e.target.value })}
                     className="w-full px-3 py-2 text-sm rounded-xl border border-stone-200 focus:outline-hidden focus:border-[#F0935C] focus:ring-2 focus:ring-[#F0935C]/20 bg-white"
                   >
-                    <option>만 0세 (씨앗반)</option>
-                    <option>만 1세 (새싹반)</option>
-                    <option>만 2세 (줄기반)</option>
-                    <option>만 3세 (꽃잎반)</option>
-                    <option>만 4~5세 (열매반)</option>
-                    <option>시간제 / 맞춤돌봄 문의</option>
+                    {(institution.classes || []).map(cls => (
+                      <option key={cls.name} value={`${cls.age} (${cls.name})`}>
+                        {cls.age} ({cls.name})
+                      </option>
+                    ))}
+                    <option value="시간제 / 맞춤돌봄 문의">시간제 / 맞춤돌봄 문의</option>
                   </select>
                 </div>
               </div>

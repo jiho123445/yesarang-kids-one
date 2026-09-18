@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Trash2, Edit3, Paperclip, Mail, FileText, CheckCircle, Eye } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, Paperclip, Mail, FileText, CheckCircle, Eye, School, CheckCircle2 } from 'lucide-react';
 import { useData } from '../../../context/DataContext';
 import { NewsletterItem } from '../../../types';
 import { FileUpload } from '../../common/FileUpload';
 import { ConfirmDialog } from '../ConfirmDialog';
+import { ClassManageModal } from '../ClassManageModal';
 
 export const NewslettersTab: React.FC = () => {
-  const { newsletters, addNewsletter, updateNewsletter, deleteNewsletter, adminEditingItem, setAdminEditingItem } = useData();
+  const {
+    newsletters,
+    addNewsletter,
+    updateNewsletter,
+    deleteNewsletter,
+    adminEditingItem,
+    setAdminEditingItem,
+    institution,
+  } = useData();
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('전체');
   const [isEditing, setIsEditing] = useState(false);
+  const [isClassModalOpen, setIsClassModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [notificationMsg, setNotificationMsg] = useState<string | null>(null);
 
-  // Form state
+  const classList = ['전체', ...(institution.classes?.map(c => c.name) || ['씨앗반', '새싹반', '줄기반', '꽃잎반', '열매반'])];
+
+  // Helper to show temporary notification
+  const showNotification = (msg: string) => {
+    setNotificationMsg(msg);
+    setTimeout(() => setNotificationMsg(null), 3500);
+  };
   const [formId, setFormId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [targetClass, setTargetClass] = useState('전체');
@@ -103,6 +120,14 @@ export const NewslettersTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {notificationMsg && (
+        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center space-x-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{notificationMsg}</span>
+        </div>
+      )}
+
       {/* Top action bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-stone-200">
         <div>
@@ -124,19 +149,30 @@ export const NewslettersTab: React.FC = () => {
       {/* Filter and Search */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-stone-50 p-3 rounded-2xl border border-stone-200 text-xs">
         <div className="flex items-center space-x-1 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-          {['전체', '씨앗반', '새싹반', '줄기반', '꽃잎반', '열매반'].map(cls => (
+          {classList.map(cls => (
             <button
               key={cls}
               onClick={() => setClassFilter(cls)}
-              className={`px-3 py-1.5 rounded-lg font-bold transition-colors shrink-0 ${
+              className={`px-3 py-1.5 rounded-lg font-bold transition-colors shrink-0 cursor-pointer ${
                 classFilter === cls
-                  ? 'bg-amber-500 text-white'
+                  ? 'bg-amber-500 text-white shadow-2xs'
                   : 'bg-white text-stone-600 hover:bg-stone-200/70 border border-stone-200'
               }`}
             >
               {cls}
             </button>
           ))}
+
+          {/* Direct Class Name Edit Button */}
+          <button
+            type="button"
+            onClick={() => setIsClassModalOpen(true)}
+            className="px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-bold transition-all shrink-0 inline-flex items-center space-x-1 shadow-2xs cursor-pointer ml-1"
+            title="학급(반) 이름 및 구성 변경"
+          >
+            <Edit3 className="w-3.5 h-3.5 text-amber-700" />
+            <span>반 이름 변경</span>
+          </button>
         </div>
 
         <div className="relative w-full sm:w-64">
@@ -243,11 +279,11 @@ export const NewslettersTab: React.FC = () => {
                     className="w-full p-2.5 rounded-xl border border-stone-200 bg-white font-medium"
                   >
                     <option value="전체">전체 (전 연령)</option>
-                    <option value="씨앗반">씨앗반 (만0세)</option>
-                    <option value="새싹반">새싹반 (만1세)</option>
-                    <option value="줄기반">줄기반 (만2세)</option>
-                    <option value="꽃잎반">꽃잎반 (만3세)</option>
-                    <option value="열매반">열매반 (만4~5세)</option>
+                    {(institution.classes || []).map(cls => (
+                      <option key={cls.name} value={cls.name}>
+                        {cls.name} ({cls.age})
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -374,6 +410,13 @@ export const NewslettersTab: React.FC = () => {
           }
         }}
         onCancel={() => setDeleteTargetId(null)}
+      />
+
+      {/* Class Manage Modal */}
+      <ClassManageModal
+        isOpen={isClassModalOpen}
+        onClose={() => setIsClassModalOpen(false)}
+        onSuccess={msg => showNotification(msg)}
       />
     </div>
   );

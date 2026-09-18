@@ -369,9 +369,21 @@ export const IntroPage: React.FC = () => {
 
           {/* Class organization list */}
           <div className="mt-12 bg-amber-50/70 rounded-3xl p-6 sm:p-8 border border-amber-200">
-            <h3 className="text-lg sm:text-xl font-black text-stone-900 mb-4 text-center sm:text-left">
-              연령별 학급 구성 현황 (총 정원: {institution.capacity}명)
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+              <h3 className="text-lg sm:text-xl font-black text-stone-900 text-center sm:text-left">
+                연령별 학급 구성 현황 (총 정원: {institution.capacity}명)
+              </h3>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => openAdminWithTab('intro')}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-stone-800 border border-amber-300 text-xs font-bold shadow-2xs transition-colors cursor-pointer self-center sm:self-auto"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-[#F0935C]" />
+                  <span>반 이름·편성 관리</span>
+                </button>
+              )}
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               {(institution.classes || []).map((cls, idx) => (
                 <div key={idx} className="bg-white rounded-2xl p-4 shadow-xs border border-amber-100 text-center">

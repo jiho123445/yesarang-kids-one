@@ -1,7 +1,27 @@
-import React, { useState } from 'react';
-import { Save, Building, Users, Heart, Phone, MapPin, Plus, Trash2, Edit3, CheckCircle2, RotateCcw, Camera, Sparkles, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  Save,
+  Building,
+  Users,
+  Heart,
+  Phone,
+  MapPin,
+  Plus,
+  Trash2,
+  Edit3,
+  CheckCircle2,
+  RotateCcw,
+  Camera,
+  Sparkles,
+  Check,
+  School,
+  ArrowUp,
+  ArrowDown,
+  AlertCircle,
+  Pencil,
+} from 'lucide-react';
 import { useData } from '../../../context/DataContext';
-import { TeacherInfo, FacilityRoom } from '../../../types';
+import { TeacherInfo, FacilityRoom, InstitutionClass } from '../../../types';
 import { FileUpload } from '../../common/FileUpload';
 import { ConfirmDialog } from '../ConfirmDialog';
 import {
@@ -11,10 +31,38 @@ import {
   HERO_PRESETS,
 } from '../../../data/heroPresets';
 
+const PRESET_THEMES = [
+  {
+    name: '자연·생태 (기본)',
+    classes: ['씨앗반', '새싹반', '줄기반', '꽃잎반', '열매반'],
+  },
+  {
+    name: '하늘·빛',
+    classes: ['햇살반', '달님반', '별님반', '구름반', '무지개반'],
+  },
+  {
+    name: '사랑·인성',
+    classes: ['사랑반', '기쁨반', '소망반', '믿음반', '지혜반'],
+  },
+  {
+    name: '숲·나무',
+    classes: ['솔잎반', '단풍반', '은행반', '도토리반', '소나무반'],
+  },
+];
+
+const DEFAULT_CLASSES: InstitutionClass[] = [
+  { name: '씨앗반', age: '만 0세', capacity: '5명', desc: '오감 발달과 따뜻한 신체 접촉 중심의 애착 형성' },
+  { name: '새싹반', age: '만 1세', capacity: '10명', desc: '자율성과 기본 생활 습관, 친환경 오감 생태 탐색' },
+  { name: '줄기반', age: '만 2세', capacity: '14명', desc: '언어 폭발기 어휘력 증진 및 친구와의 긍정적 또래 관계' },
+  { name: '꽃잎반', age: '만 3세', capacity: '15명', desc: '숲체험 놀이 중심, 신체 조절과 풍부한 상상 미술' },
+  { name: '열매반', age: '만 4~5세', capacity: '15명', desc: '자신감 넘치는 발표, 초등 연계 인성 및 창의 융합 활동' },
+];
+
 export const IntroTab: React.FC = () => {
   const {
     institution,
     updateInstitution,
+    updateClasses,
     introDetails,
     updateIntroDetails,
     addTeacher,
@@ -25,8 +73,30 @@ export const IntroTab: React.FC = () => {
     deleteFacility,
   } = useData();
 
-  const [activeSubSection, setActiveSubSection] = useState<'basic' | 'hero' | 'greeting' | 'teachers' | 'facilities'>('basic');
+  const [activeSubSection, setActiveSubSection] = useState<'basic' | 'hero' | 'greeting' | 'classes' | 'teachers' | 'facilities'>('basic');
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+
+  // Form state for Classes
+  const [classesList, setClassesList] = useState<InstitutionClass[]>(() => {
+    return institution.classes && institution.classes.length > 0
+      ? institution.classes.map(c => ({ ...c }))
+      : DEFAULT_CLASSES.map(c => ({ ...c }));
+  });
+  const [classOriginalNames, setClassOriginalNames] = useState<string[]>(() => {
+    return (institution.classes && institution.classes.length > 0
+      ? institution.classes
+      : DEFAULT_CLASSES
+    ).map(c => c.name);
+  });
+  const [classErrorMsg, setClassErrorMsg] = useState<string | null>(null);
+
+  // Sync classesList if institution.classes changes externally
+  useEffect(() => {
+    if (institution.classes && institution.classes.length > 0) {
+      setClassesList(institution.classes.map(c => ({ ...c })));
+      setClassOriginalNames(institution.classes.map(c => c.name));
+    }
+  }, [institution.classes]);
 
   // Form states for Institution Basic
   const [basicForm, setBasicForm] = useState({
@@ -202,6 +272,124 @@ export const IntroTab: React.FC = () => {
     showNotification('시설 현황 정보가 저장되었습니다.');
   };
 
+  // Classes Handlers
+  const handleClassNameChange = (index: number, newName: string) => {
+    setClassErrorMsg(null);
+    setClassesList(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], name: newName };
+      return updated;
+    });
+  };
+
+  const handleClassFieldChange = (
+    index: number,
+    field: keyof InstitutionClass,
+    val: string
+  ) => {
+    setClassesList(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: val };
+      return updated;
+    });
+  };
+
+  const handleClassMoveUp = (index: number) => {
+    if (index === 0) return;
+    setClassesList(prev => {
+      const updated = [...prev];
+      const temp = updated[index - 1];
+      updated[index - 1] = updated[index];
+      updated[index] = temp;
+      return updated;
+    });
+  };
+
+  const handleClassMoveDown = (index: number) => {
+    if (index === classesList.length - 1) return;
+    setClassesList(prev => {
+      const updated = [...prev];
+      const temp = updated[index + 1];
+      updated[index + 1] = updated[index];
+      updated[index] = temp;
+      return updated;
+    });
+  };
+
+  const handleClassDelete = (index: number) => {
+    if (classesList.length <= 1) {
+      setClassErrorMsg('최소 1개 이상의 학급(반)이 등록되어 있어야 합니다.');
+      return;
+    }
+    setClassErrorMsg(null);
+    setClassesList(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddClass = () => {
+    setClassErrorMsg(null);
+    const newIdx = classesList.length + 1;
+    const newClass: InstitutionClass = {
+      name: `새로운반${newIdx}`,
+      age: `만 ${Math.min(classesList.length, 5)}세`,
+      capacity: '12명',
+      desc: '자율성과 협동심을 기르는 전인 발달 놀이 중심 교육',
+    };
+    setClassesList(prev => [...prev, newClass]);
+  };
+
+  const handleApplyPreset = (presetNames: string[]) => {
+    setClassErrorMsg(null);
+    setClassesList(prev => {
+      return prev.map((cls, idx) => ({
+        ...cls,
+        name: presetNames[idx] || cls.name,
+      }));
+    });
+  };
+
+  const handleResetToDefaultClasses = () => {
+    setClassErrorMsg(null);
+    setClassesList(DEFAULT_CLASSES.map(c => ({ ...c })));
+  };
+
+  const handleSaveClasses = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const trimmed = classesList.map(c => ({
+      ...c,
+      name: c.name.trim(),
+      age: c.age.trim(),
+      capacity: c.capacity.trim(),
+      desc: c.desc.trim(),
+    }));
+
+    for (let i = 0; i < trimmed.length; i++) {
+      if (!trimmed[i].name) {
+        setClassErrorMsg(`${i + 1}번째 반의 이름을 입력해 주세요.`);
+        return;
+      }
+    }
+
+    const names = trimmed.map(c => c.name);
+    const duplicates = names.filter((item, index) => names.indexOf(item) !== index);
+    if (duplicates.length > 0) {
+      setClassErrorMsg(`중복된 반 이름이 있습니다: "${duplicates[0]}". 각 반 이름은 서로 달라야 합니다.`);
+      return;
+    }
+
+    const renameMap: Record<string, string> = {};
+    classOriginalNames.forEach((oldName, idx) => {
+      const newName = trimmed[idx]?.name;
+      if (newName && oldName !== newName) {
+        renameMap[oldName] = newName;
+      }
+    });
+
+    updateClasses(trimmed, renameMap);
+    setClassOriginalNames(trimmed.map(c => c.name));
+    showNotification('학급(반) 이름 및 구성이 저장되었습니다.');
+  };
+
   return (
     <div className="space-y-6">
       {/* Top action bar */}
@@ -226,6 +414,7 @@ export const IntroTab: React.FC = () => {
         {[
           { id: 'basic', label: '기관 기본정보 / 연락처', icon: Building },
           { id: 'hero', label: '대문 대표 이미지', icon: Camera },
+          { id: 'classes', label: '학급(반) 이름·편성', icon: School },
           { id: 'greeting', label: '원장 인사말', icon: Heart },
           { id: 'teachers', label: '교직원 구성', icon: Users },
           { id: 'facilities', label: '시설 현황', icon: MapPin },
@@ -772,6 +961,214 @@ export const IntroTab: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Classes (학급/반 이름 및 구성) Section */}
+      {activeSubSection === 'classes' && (
+        <div className="space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
+            {/* Header info */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-100 flex items-center justify-center text-[#F0935C] shrink-0">
+                  <School className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm sm:text-base font-black text-stone-900 flex items-center space-x-2">
+                    <span>학급(반) 이름 및 구성 변경</span>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
+                      총 {classesList.length}개 반
+                    </span>
+                  </h4>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    가정통신문, 갤러리, 일정, 원 소개 페이지 등에 표시되는 반 이름과 연령 정보를 수정합니다.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  type="button"
+                  onClick={handleResetToDefaultClasses}
+                  className="px-3 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-600 text-xs font-bold inline-flex items-center space-x-1 transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>기본 5개 반 복원</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Error Notification */}
+            {classErrorMsg && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{classErrorMsg}</span>
+              </div>
+            )}
+
+            {/* Preset themes */}
+            <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-200/70">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-amber-900 flex items-center">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600 mr-1" />
+                  추천 반 이름 테마 세트로 일괄 적용
+                </span>
+                <span className="text-[11px] text-amber-700">원하는 테마를 클릭하면 반 이름이 즉시 변경됩니다</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {PRESET_THEMES.map(preset => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => handleApplyPreset(preset.classes)}
+                    className="px-3 py-1.5 rounded-lg bg-white hover:bg-amber-100 hover:border-amber-400 border border-amber-200 text-xs font-bold text-stone-800 transition-colors shadow-2xs cursor-pointer"
+                    title={preset.classes.join(', ')}
+                  >
+                    <span>{preset.name}</span>
+                    <span className="text-stone-400 text-[11px] ml-1.5 font-normal">
+                      ({preset.classes.join(', ')})
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Classes List */}
+            <form onSubmit={handleSaveClasses} className="space-y-3 pt-1">
+              <div className="space-y-3">
+                {classesList.map((cls, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-2xl bg-stone-50 hover:bg-amber-50/30 border border-stone-200 transition-colors space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-black flex items-center justify-center shrink-0">
+                          {idx + 1}
+                        </span>
+                        <span className="text-xs font-black text-stone-800 flex items-center space-x-1">
+                          <Pencil className="w-3.5 h-3.5 text-[#F0935C]" />
+                          <span>학급 정보 설정</span>
+                        </span>
+                      </div>
+
+                      {/* Reorder and Delete controls */}
+                      <div className="flex items-center space-x-1">
+                        <button
+                          type="button"
+                          onClick={() => handleClassMoveUp(idx)}
+                          disabled={idx === 0}
+                          className="p-1.5 rounded-lg bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                          title="위로 이동"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleClassMoveDown(idx)}
+                          disabled={idx === classesList.length - 1}
+                          className="p-1.5 rounded-lg bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                          title="아래로 이동"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleClassDelete(idx)}
+                          className="p-1.5 rounded-lg bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 cursor-pointer ml-1"
+                          title="반 삭제"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Inputs */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">
+                          반 이름 <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={cls.name}
+                          onChange={e => handleClassNameChange(idx, e.target.value)}
+                          placeholder="예: 햇살반"
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white font-black text-stone-900 focus:outline-hidden focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">
+                          대상 연령
+                        </label>
+                        <input
+                          type="text"
+                          value={cls.age}
+                          onChange={e => handleClassFieldChange(idx, 'age', e.target.value)}
+                          placeholder="예: 만 1세"
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white font-medium text-stone-900 focus:outline-hidden focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">
+                          정원
+                        </label>
+                        <input
+                          type="text"
+                          value={cls.capacity}
+                          onChange={e => handleClassFieldChange(idx, 'capacity', e.target.value)}
+                          placeholder="예: 10명"
+                          className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white font-medium text-stone-900 focus:outline-hidden focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="text-xs">
+                      <label className="block font-bold text-stone-700 mb-1">
+                        반 소개 / 보육 특징
+                      </label>
+                      <input
+                        type="text"
+                        value={cls.desc}
+                        onChange={e => handleClassFieldChange(idx, 'desc', e.target.value)}
+                        placeholder="예: 언어 발달과 따뜻한 친구 관계 중심의 놀이 프로그램"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-200 bg-white font-normal text-stone-700 focus:outline-hidden focus:border-amber-400 focus:ring-1 focus:ring-amber-400"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Add class button */}
+              <button
+                type="button"
+                onClick={handleAddClass}
+                className="w-full py-3 rounded-2xl border-2 border-dashed border-amber-300 hover:border-amber-400 bg-amber-50/50 hover:bg-amber-50 text-amber-800 font-bold text-xs flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>새 학급(반) 추가하기</span>
+              </button>
+
+              {/* Submit bar */}
+              <div className="pt-4 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p className="text-xs text-stone-500">
+                  💡 반 이름을 변경하시면 기존 가정통신문 및 갤러리의 학급 명칭도 연동되어 자동 수정됩니다.
+                </p>
+
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#F5C451] to-[#F0935C] hover:brightness-105 active:scale-95 text-stone-950 font-black text-xs sm:text-sm shadow-md transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>학급(반) 변경사항 저장</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

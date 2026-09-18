@@ -26,7 +26,7 @@ export const BoardPage: React.FC<BoardPageProps> = ({
   const { subtab = 'notice' } = useParams<{ subtab?: string }>();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('전체');
-  const { isAdmin, openAdminWithTab, deleteNotice, deleteNewsletter } = useData();
+  const { isAdmin, openAdminWithTab, deleteNotice, deleteNewsletter, institution } = useData();
 
   const filteredNotices = notices.filter(n => {
     const matchesSearch =
@@ -40,7 +40,10 @@ export const BoardPage: React.FC<BoardPageProps> = ({
     const matchesSearch =
       nl.title.toLowerCase().includes(searchKeyword.toLowerCase()) ||
       nl.summary.toLowerCase().includes(searchKeyword.toLowerCase());
-    const matchesCat = selectedCategory === '전체' || nl.targetClass === selectedCategory;
+    const matchesCat =
+      selectedCategory === '전체' ||
+      nl.targetClass === selectedCategory ||
+      (nl.targetClass && nl.targetClass.includes(selectedCategory));
     return matchesSearch && matchesCat;
   });
 
@@ -146,7 +149,7 @@ export const BoardPage: React.FC<BoardPageProps> = ({
                   {cat}
                 </button>
               ))
-            : ['전체', '새싹반', '꽃잎·열매반'].map(cls => (
+            : ['전체', ...(institution.classes?.map(c => c.name) || [])].map(cls => (
                 <button
                   key={cls}
                   onClick={() => setSelectedCategory(cls)}

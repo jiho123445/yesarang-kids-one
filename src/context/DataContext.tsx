@@ -10,6 +10,7 @@ import {
   IntroDetailsData,
   TeacherInfo,
   FacilityRoom,
+  InstitutionClass,
   AdminTab,
 } from '../types';
 
@@ -98,6 +99,7 @@ interface DataContextType {
 
   // CRUD Institution & Intro
   updateInstitution: (data: Partial<InstitutionData>) => void;
+  updateClasses: (classes: InstitutionClass[], renameMap?: Record<string, string>) => void;
   updateIntroDetails: (data: Partial<IntroDetailsData>) => void;
   addTeacher: (teacher: Omit<TeacherInfo, 'id'>) => void;
   updateTeacher: (id: string, teacher: Partial<TeacherInfo>) => void;
@@ -383,6 +385,41 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setInstitution(prev => ({ ...prev, ...data }));
   };
 
+  const updateClasses = (newClasses: InstitutionClass[], renameMap?: Record<string, string>) => {
+    setInstitution(prev => ({
+      ...prev,
+      classes: newClasses,
+    }));
+
+    // If any class was renamed, propagate to existing items
+    if (renameMap && Object.keys(renameMap).length > 0) {
+      setNewsletters(prev =>
+        prev.map(nl => {
+          if (renameMap[nl.targetClass]) {
+            return { ...nl, targetClass: renameMap[nl.targetClass] };
+          }
+          return nl;
+        })
+      );
+      setGallery(prev =>
+        prev.map(g => {
+          if (g.targetClass && renameMap[g.targetClass]) {
+            return { ...g, targetClass: renameMap[g.targetClass] };
+          }
+          return g;
+        })
+      );
+      setEvents(prev =>
+        prev.map(e => {
+          if (e.targetClass && renameMap[e.targetClass]) {
+            return { ...e, targetClass: renameMap[e.targetClass] };
+          }
+          return e;
+        })
+      );
+    }
+  };
+
   const updateIntroDetails = (data: Partial<IntroDetailsData>) => {
     setIntroDetails(prev => ({ ...prev, ...data }));
   };
@@ -488,6 +525,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteEvent,
 
         updateInstitution,
+        updateClasses,
         updateIntroDetails,
         addTeacher,
         updateTeacher,

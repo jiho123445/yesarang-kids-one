@@ -86,7 +86,7 @@ export const SettingsTab: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-bold text-stone-700 mb-1">새 비밀번호 (4자리 이상)</label>
+              <label className="block font-bold text-stone-700 mb-1">새 비밀번호 (6자리 이상)</label>
               <input
                 type="password"
                 value={newPw}

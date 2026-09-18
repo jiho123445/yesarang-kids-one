@@ -11,10 +11,10 @@ export const AdminToolbar: React.FC = () => {
 
   return (
     <>
-      <div className="bg-stone-900 text-amber-300 border-b border-amber-500/30 py-2 px-4 sm:px-6 sticky top-0 z-50 shadow-md">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="bg-stone-900 text-amber-300 border-b border-amber-500/30 py-2 px-3 sm:px-6 sticky top-0 z-50 shadow-md">
+        <div className="max-w-7xl mx-auto flex flex-nowrap items-center justify-between gap-3 text-xs overflow-x-auto scrollbar-none">
           {/* Left indicator */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0 whitespace-nowrap">
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -27,7 +27,7 @@ export const AdminToolbar: React.FC = () => {
           </div>
 
           {/* Right Action buttons */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0 whitespace-nowrap">
             <button
               onClick={() => setIsAdminDashboardOpen(true)}
               className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 text-stone-950 font-black hover:brightness-110 shadow-xs transition-all active:scale-95 cursor-pointer"

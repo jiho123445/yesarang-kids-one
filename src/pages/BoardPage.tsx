@@ -108,15 +108,15 @@ export const BoardPage: React.FC<BoardPageProps> = ({
         )}
       </div>
 
-      {/* Subtab Navigation Pills */}
-      <div className="flex flex-wrap gap-2 pb-6 border-b border-stone-200/80 mb-6">
+      {/* Subtab Navigation Pills (Strictly 1 Single Line) */}
+      <div className="flex flex-nowrap overflow-x-auto scrollbar-none gap-2 pb-4 border-b border-stone-200/80 mb-6">
         {TABS.map(tab => {
           const isActive = subtab === tab.id;
           return (
             <Link
               key={tab.id}
               to={tab.path}
-              className={`px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all ${
+              className={`px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'bg-[#F0935C] text-white shadow-md'
                   : 'bg-white text-stone-700 hover:bg-amber-50 hover:text-amber-800 border border-stone-200'

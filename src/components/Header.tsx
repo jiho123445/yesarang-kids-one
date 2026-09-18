@@ -85,187 +85,149 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-amber-100/70 shadow-xs transition-shadow">
-      {/* Top Banner Bar for contact & hours on desktop */}
-      <div className="hidden lg:block bg-amber-50/80 border-b border-amber-100/60 py-1 px-6 text-xs text-stone-600">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <span className="inline-flex items-center text-amber-700 font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse" />
-              2026학년도 원아 상시 상담 중
-            </span>
-            <span>운영시간: {institution.operatingHours}</span>
-            <span className="text-stone-400">|</span>
-            <span>{institution.address}</span>
-          </div>
-          <div className="flex items-center space-x-3 text-stone-600">
-            <a href={`tel:${institution.phone}`} className="hover:text-amber-700 font-medium">
-              대표전화: {institution.phone}
-            </a>
-            <span className="text-stone-300">|</span>
-            <button
-              onClick={onOpenConsultation}
-              className="text-amber-800 font-bold hover:underline cursor-pointer"
-            >
-              온라인 입소 상담
-            </button>
-            <span className="text-stone-300">|</span>
-            {/* Discreet Admin Login Trigger */}
-            <button
-              onClick={handleAdminClick}
-              className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded-md font-semibold transition-colors cursor-pointer ${
-                isAdmin
-                  ? 'bg-amber-200 text-amber-900 hover:bg-amber-300'
-                  : 'text-stone-400 hover:text-stone-700 hover:bg-amber-100/50'
-              }`}
-              title={isAdmin ? '관리자 대시보드 열기' : '원장/교직원 관리자 로그인'}
-            >
-              {isAdmin ? (
-                <>
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
-                  <span>관리자 모드</span>
-                </>
-              ) : (
-                <>
-                  <Lock className="w-3 h-3" />
-                  <span>관리자</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Header Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-18 sm:h-20">
-          {/* Left: Hamburger menu button */}
-          <div className="flex items-center">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-amber-100/80 shadow-xs transition-shadow">
+      {/* Unified Single-Line Header Bar */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4 flex-nowrap">
+          {/* Left: Hamburger & Logo */}
+          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
             <button
               id="header-hamburger-btn"
               onClick={onOpenMobileMenu}
-              className="p-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100/70 text-stone-700 hover:text-amber-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+              className="p-2 sm:p-2.5 rounded-2xl bg-amber-50 hover:bg-amber-100/80 text-stone-700 hover:text-amber-800 transition-colors focus:outline-hidden focus:ring-2 focus:ring-amber-400 cursor-pointer"
               aria-label="전체 메뉴 열기"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden xl:flex items-center ml-8 space-x-1" aria-label="주 메뉴">
-              {NAV_ITEMS.map(nav => {
-                const isActive = location.pathname.startsWith(nav.basePath);
-                return (
-                  <div
-                    key={nav.title}
-                    className="relative"
-                    onMouseEnter={() => setHoveredNav(nav.title)}
-                    onMouseLeave={() => setHoveredNav(null)}
-                  >
-                    <Link
-                      to={nav.subItems[0].path}
-                      className={`flex items-center px-3.5 py-2 rounded-xl text-[15px] font-bold transition-all ${
-                        isActive
-                          ? 'text-[#F0935C] bg-orange-50/70'
-                          : 'text-stone-700 hover:text-amber-700 hover:bg-amber-50/60'
-                      }`}
-                    >
-                      <span>{nav.title}</span>
-                      <ChevronDown className="w-3.5 h-3.5 ml-1 text-stone-400" />
-                    </Link>
-
-                    {/* Dropdown Menu */}
-                    {hoveredNav === nav.title && (
-                      <div className="absolute left-0 top-full pt-1.5 w-48 animate-in fade-in slide-in-from-top-1 duration-150 z-50">
-                        <div className="bg-white rounded-2xl shadow-xl border border-amber-100/80 p-2 space-y-1">
-                          {nav.subItems.map(sub => (
-                            <Link
-                              key={sub.path}
-                              to={sub.path}
-                              className={`block px-3.5 py-2 text-sm rounded-xl font-medium transition-colors ${
-                                location.pathname === sub.path
-                                  ? 'bg-[#F0935C]/15 text-[#F0935C] font-bold'
-                                  : 'text-stone-600 hover:bg-amber-50 hover:text-amber-800'
-                              }`}
-                            >
-                              {sub.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </nav>
+            <Link
+              to="/"
+              className="flex items-center space-x-2 sm:space-x-2.5 group"
+              aria-label={`${institution.name} 홈으로 이동`}
+            >
+              <div className="relative shrink-0 group-hover:scale-105 transition-transform duration-200">
+                <MascotSun className="w-8 h-8 sm:w-11 sm:h-11" />
+              </div>
+              <div className="flex flex-col">
+                <span className="hidden sm:block text-[10px] font-semibold text-[#F0935C] tracking-tight leading-tight">
+                  {institution.slogan}
+                </span>
+                <div className="flex items-baseline space-x-1.5">
+                  <span className="text-lg sm:text-2xl font-black tracking-tight text-stone-900 group-hover:text-amber-600 transition-colors whitespace-nowrap">
+                    {institution.shortName || institution.name}
+                  </span>
+                  <span className="hidden xl:inline-block text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-md leading-none">
+                    홍천
+                  </span>
+                </div>
+              </div>
+            </Link>
           </div>
 
-          {/* Center: Logo and Slogan */}
-          <Link
-            to="/"
-            className="flex items-center space-x-2.5 sm:space-x-3 text-center sm:text-left group"
-            aria-label="홍천 예사랑어린이집 홈으로 이동"
+          {/* Center: Desktop Navigation Tabs (Strictly 1 Single Line) */}
+          <nav
+            className="hidden lg:flex items-center space-x-1 xl:space-x-2 shrink-0 flex-nowrap"
+            aria-label="주 메뉴"
           >
-            <div className="relative shrink-0 group-hover:scale-105 transition-transform duration-200">
-              <MascotSun className="w-10 h-10 sm:w-12 sm:h-12" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[11px] sm:text-xs font-semibold text-[#F0935C] tracking-tight">
-                {institution.slogan}
-              </span>
-              <div className="flex items-baseline space-x-1.5">
-                <span className="text-xl sm:text-2xl font-black tracking-tight text-stone-900 group-hover:text-amber-600 transition-colors">
-                  {institution.shortName || institution.name}
-                </span>
-                <span className="hidden sm:inline-block text-[11px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
-                  홍천
-                </span>
-              </div>
-            </div>
-          </Link>
+            {NAV_ITEMS.map(nav => {
+              const isActive = location.pathname.startsWith(nav.basePath);
+              return (
+                <div
+                  key={nav.title}
+                  className="relative"
+                  onMouseEnter={() => setHoveredNav(nav.title)}
+                  onMouseLeave={() => setHoveredNav(null)}
+                >
+                  <Link
+                    to={nav.subItems[0].path}
+                    className={`flex items-center px-3 py-2 rounded-xl text-sm xl:text-[15px] font-bold transition-all whitespace-nowrap shrink-0 ${
+                      isActive
+                        ? 'text-[#F0935C] bg-orange-50 font-black'
+                        : 'text-stone-700 hover:text-amber-800 hover:bg-amber-50/70'
+                    }`}
+                  >
+                    <span>{nav.title}</span>
+                    <ChevronDown className="w-3.5 h-3.5 ml-1 text-stone-400" />
+                  </Link>
 
-          {/* Right: Search & Phone & Consultation Action */}
-          <div className="flex items-center space-x-1 sm:space-x-2">
+                  {/* Dropdown Menu */}
+                  {hoveredNav === nav.title && (
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full pt-2 w-44 animate-in fade-in slide-in-from-top-1 duration-150 z-50">
+                      <div className="bg-white rounded-2xl shadow-xl border border-amber-100/90 p-2 space-y-1">
+                        {nav.subItems.map(sub => (
+                          <Link
+                            key={sub.path}
+                            to={sub.path}
+                            className={`block px-3.5 py-2 text-xs xl:text-sm rounded-xl font-medium transition-colors whitespace-nowrap ${
+                              location.pathname === sub.path
+                                ? 'bg-[#F0935C]/15 text-[#F0935C] font-bold'
+                                : 'text-stone-600 hover:bg-amber-50 hover:text-amber-800'
+                            }`}
+                          >
+                            {sub.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+
+          {/* Right: Actions (Search, Phone, Consultation, Admin) strictly on 1 Line */}
+          <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0 flex-nowrap">
             <button
               id="header-search-btn"
               onClick={onOpenSearch}
-              className="p-2.5 rounded-2xl text-stone-600 hover:text-amber-800 hover:bg-amber-50 transition-colors focus:outline-hidden focus:ring-2 focus:ring-amber-400"
+              className="p-2 sm:p-2.5 rounded-2xl text-stone-600 hover:text-amber-800 hover:bg-amber-50 transition-colors focus:outline-hidden focus:ring-2 focus:ring-amber-400 cursor-pointer"
               aria-label="게시물 및 식단 검색"
               title="검색"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             <a
               id="header-call-btn"
               href={`tel:${institution.phone}`}
-              className="p-2.5 rounded-2xl text-[#F0935C] hover:bg-orange-50 transition-colors focus:outline-hidden focus:ring-2 focus:ring-orange-400"
-              aria-label={`전화 걸기 ${institution.phone}`}
-              title="전화 문의"
+              className="p-2 sm:p-2.5 rounded-2xl text-[#F0935C] hover:bg-orange-50 transition-colors focus:outline-hidden focus:ring-2 focus:ring-orange-400"
+              aria-label={`전화 문의: ${institution.phone}`}
+              title={`문의 전화: ${institution.phone}`}
             >
-              <Phone className="w-5 h-5" />
+              <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
             </a>
-
-            {/* Mobile/Tablet Admin Trigger */}
-            <button
-              onClick={handleAdminClick}
-              className={`p-2 rounded-2xl transition-colors lg:hidden ${
-                isAdmin
-                  ? 'bg-amber-100 text-amber-900 font-bold'
-                  : 'text-stone-400 hover:text-stone-700 hover:bg-stone-100'
-              }`}
-              title={isAdmin ? '관리자 대시보드' : '관리자 로그인'}
-              aria-label="관리자 모드"
-            >
-              <Lock className="w-4 h-4" />
-            </button>
 
             <button
               id="header-consult-cta-btn"
               onClick={onOpenConsultation}
-              className="hidden md:flex items-center space-x-1.5 py-2.5 px-4 rounded-2xl bg-gradient-to-r from-[#F5C451] to-[#F0935C] text-stone-900 font-bold text-xs sm:text-sm shadow-xs hover:shadow-md hover:brightness-105 active:scale-95 transition-all cursor-pointer"
+              className="hidden sm:inline-flex items-center space-x-1.5 py-2 px-3 sm:px-4 rounded-2xl bg-gradient-to-r from-[#F5C451] to-[#F0935C] text-stone-900 font-bold text-xs sm:text-sm shadow-2xs hover:shadow-xs hover:brightness-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
-              <Sparkles className="w-4 h-4 text-amber-900" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-900" />
               <span>입소상담</span>
+            </button>
+
+            {/* Admin Login/Dashboard trigger button */}
+            <button
+              onClick={handleAdminClick}
+              className={`inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                isAdmin
+                  ? 'bg-amber-200 text-amber-900 hover:bg-amber-300'
+                  : 'text-stone-500 hover:text-stone-800 hover:bg-stone-100 border border-stone-200/80'
+              }`}
+              title={isAdmin ? '관리자 대시보드' : '원장/교직원 관리자 로그인'}
+            >
+              {isAdmin ? (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
+                  <span className="hidden md:inline">관리자 모드</span>
+                  <span className="md:hidden">CMS</span>
+                </>
+              ) : (
+                <>
+                  <Lock className="w-3 h-3 text-stone-400" />
+                  <span>관리자</span>
+                </>
+              )}
             </button>
           </div>
         </div>

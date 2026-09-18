@@ -167,6 +167,8 @@ export interface InstitutionData {
     today: number;
     total: number;
   };
+  /** 방문자 통계가 마지막으로 집계된 날짜 (Asia/Seoul, YYYY-MM-DD) — 자동 관리됨 */
+  visitorStatsDate?: string;
   greeting: {
     title: string;
     paragraphs: string[];

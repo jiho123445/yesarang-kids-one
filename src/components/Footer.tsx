@@ -140,14 +140,18 @@ export const Footer: React.FC = () => {
               {/* Today Badge */}
               <div className="flex items-center px-3 py-1.5 rounded-xl bg-stone-800 border border-stone-700/80 shadow-xs">
                 <span className="text-[11px] text-stone-400 font-medium mr-2">오늘 방문자</span>
-                <span className="text-sm font-black text-amber-400">128</span>
+                <span className="text-sm font-black text-amber-400">
+                  {(institution.visitorStats?.today ?? 0).toLocaleString('ko-KR')}
+                </span>
                 <span className="text-[10px] text-stone-500 ml-0.5">명</span>
               </div>
 
               {/* Total Badge */}
               <div className="flex items-center px-3 py-1.5 rounded-xl bg-stone-800 border border-stone-700/80 shadow-xs">
                 <span className="text-[11px] text-stone-400 font-medium mr-2">누적 방문자</span>
-                <span className="text-sm font-black text-[#F0935C]">48,290</span>
+                <span className="text-sm font-black text-[#F0935C]">
+                  {(institution.visitorStats?.total ?? 0).toLocaleString('ko-KR')}
+                </span>
                 <span className="text-[10px] text-stone-500 ml-0.5">명</span>
               </div>
             </div>

@@ -31,6 +31,7 @@ import {
 
 // Mock Data Files
 import partnersData from './data/partners.json';
+import { recordVisitIfNeeded } from './utils/visitorStats';
 
 // Modal and UI icons
 import { X, Heart, Calendar as CalendarIcon } from 'lucide-react';
@@ -60,6 +61,11 @@ const AppContent: React.FC = () => {
 
   // Gallery image preview modal state
   const [selectedGalleryItem, setSelectedGalleryItem] = useState<GalleryItem | null>(null);
+
+  // 방문자 통계 집계 — 앱이 처음 로드될 때 한 번만 시도 (하루 1회로 중복 방지됨)
+  useEffect(() => {
+    recordVisitIfNeeded();
+  }, []);
 
   const handleSelectNotice = (item: NoticeItem) => {
     setSelectedPost(item);

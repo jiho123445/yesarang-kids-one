@@ -89,7 +89,13 @@ export const PostDetailModal: React.FC<PostDetailModalProps> = ({ item, type, on
               </div>
 
               <button
-                onClick={() => alert(`[안내] '${item.attachmentName}' 파일 다운로드를 준비 중입니다.`)}
+                onClick={() => {
+                  if (item.attachmentUrl) {
+                    window.open(item.attachmentUrl, '_blank', 'noopener,noreferrer');
+                  } else {
+                    alert(`'${item.attachmentName}'은(는) 예시 데이터라 실제 첨부 파일이 없습니다.`);
+                  }
+                }}
                 className="inline-flex items-center px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold text-xs shadow-2xs transition-colors shrink-0"
               >
                 <Download className="w-3.5 h-3.5 mr-1" />

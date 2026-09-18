@@ -1,0 +1,62 @@
+[
+  {
+    "id": "gal-01",
+    "title": "연봉산 자락 봄 숲체험 및 도토리 싹 틔우기",
+    "category": "체험학습",
+    "date": "2026.03.16",
+    "imageUrl": "https://images.unsplash.com/photo-1596464716127-f2a829822321?w=800&auto=format&fit=crop&q=80",
+    "description": "봄햇살을 받으며 숲해설가 선생님과 함께 촉촉한 흙 냄새를 맡고, 지난 가을 떨어진 도토리가 싹을 틔우는 모습을 관찰했습니다.",
+    "likeCount": 24,
+    "targetClass": "꽃잎반·열매반"
+  },
+  {
+    "id": "gal-02",
+    "title": "오감 쑥쑥! 알록달록 클레이 찰흙 빚기와 블록 성 쌓기",
+    "category": "활동사진",
+    "date": "2026.03.14",
+    "imageUrl": "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&auto=format&fit=crop&q=80",
+    "description": "다양한 색상의 천연 점토를 조물조물 만지며 상상 속의 동물 친구들을 빚어보고 거대한 블록 궁전을 완성했어요.",
+    "likeCount": 38,
+    "targetClass": "새싹반·줄기반"
+  },
+  {
+    "id": "gal-03",
+    "title": "원내 꼬마 텃밭에 방울토마토 모종 심는 날",
+    "category": "체험학습",
+    "date": "2026.03.12",
+    "imageUrl": "https://images.unsplash.com/photo-1516627145497-ae6968895b74?w=800&auto=format&fit=crop&q=80",
+    "description": "작은 고사리손으로 흙을 파고 모종을 심은 뒤 '예쁘게 쑥쑥 자라라' 주문을 외우며 맑은 물을 흠뻑 주었습니다.",
+    "likeCount": 31,
+    "targetClass": "전체"
+  },
+  {
+    "id": "gal-04",
+    "title": "신나는 키즈 브라스 밴드 음악 놀이와 리듬 체조",
+    "category": "활동사진",
+    "date": "2026.03.09",
+    "imageUrl": "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?w=800&auto=format&fit=crop&q=80",
+    "description": "실로폰, 탬버린, 트라이앵글을 박자에 맞춰 신나게 연주하며 음악적 감수성과 협동 리듬감을 길렀습니다.",
+    "likeCount": 19,
+    "targetClass": "줄기반·꽃잎반"
+  },
+  {
+    "id": "gal-05",
+    "title": "골고루 냠냠! 한우 떡갈비와 채소 샐러드 점심시간",
+    "category": "급식사진",
+    "date": "2026.03.06",
+    "imageUrl": "https://images.unsplash.com/photo-1588072432836-e10032774350?w=800&auto=format&fit=crop&q=80",
+    "description": "영양사 선생님의 사랑이 담긴 따끈따끈 한우 떡갈비와 바삭 멸치볶음을 깨끗이 비운 씩씩한 아이들 모습입니다.",
+    "likeCount": 42,
+    "targetClass": "전체"
+  },
+  {
+    "id": "gal-06",
+    "title": "소방대피 합동훈련 및 소방관 모자 써보기 안전교육",
+    "category": "행사",
+    "date": "2026.03.04",
+    "imageUrl": "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=800&auto=format&fit=crop&q=80",
+    "description": "홍천소방서와 함께 코와 입을 젖은 손수건으로 막고 안전하게 대피하는 요령을 침착하게 익혔습니다.",
+    "likeCount": 27,
+    "targetClass": "전체"
+  }
+]

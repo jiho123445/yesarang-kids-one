@@ -1,0 +1,7 @@
+{
+  "name": "홍천 예사랑어린이집",
+  "description": "사랑과 신뢰로 꿈을 키우는 따뜻한 배움터, 홍천 예사랑어린이집 공식 누리집",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

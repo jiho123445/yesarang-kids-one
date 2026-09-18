@@ -1,0 +1,44 @@
+[
+  {
+    "id": "partner-01",
+    "name": "홍천군 육아종합지원센터",
+    "shortName": "홍천육아센터",
+    "category": "보육지원",
+    "url": "https://www.hongcheon.go.kr"
+  },
+  {
+    "id": "partner-02",
+    "name": "홍천군 어린이급식관리지원센터",
+    "shortName": "어린이급식센터",
+    "category": "영양·위생",
+    "url": "https://ccfsm.foodnara.go.kr"
+  },
+  {
+    "id": "partner-03",
+    "name": "강원특별자치도 육아종합지원센터",
+    "shortName": "강원육아종합지원",
+    "category": "도 육아지원",
+    "url": "https://gwcare.go.kr"
+  },
+  {
+    "id": "partner-04",
+    "name": "아이사랑 보육포털 (보건복지부)",
+    "shortName": "아이사랑포털",
+    "category": "입소신청",
+    "url": "https://www.childcare.go.kr"
+  },
+  {
+    "id": "partner-05",
+    "name": "한국보육진흥원",
+    "shortName": "보육진흥원",
+    "category": "어린이집평가",
+    "url": "https://www.kcpi.or.kr"
+  },
+  {
+    "id": "partner-06",
+    "name": "홍천소방서 119안전체험",
+    "shortName": "홍천소방서",
+    "category": "안전협력",
+    "url": "https://fire.gwd.go.kr"
+  }
+]

@@ -1,0 +1,97 @@
+[
+  {
+    "id": "meal-20260318",
+    "date": "2026-03-18",
+    "dayOfWeek": "수",
+    "morningSnack": "친환경 유기농 바나나 & 따뜻한 보리차",
+    "lunch": [
+      "기장차조밥",
+      "맑은 쇠고기 무국",
+      "한우 떡갈비 구이",
+      "달콤 브로콜리 멸치볶음",
+      "백김치"
+    ],
+    "afternoonSnack": "수제 단호박 찐빵 & 칼슘 우유",
+    "calories": 520,
+    "originInfo": "쌀(홍천산/국내산), 쇠고기(한우 1+), 돼지고기(국내산), 멸치(국내산), 김치(국내산)",
+    "allergyInfo": "1(난류), 2(우유), 5(대두), 6(밀), 16(쇠고기)",
+    "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=80",
+    "todayHighlight": "아이들이 좋아하는 특제 한우 떡갈비와 바삭 멸치볶음으로 단백질과 칼슘을 고루 채웠습니다."
+  },
+  {
+    "id": "meal-20260319",
+    "date": "2026-03-19",
+    "dayOfWeek": "목",
+    "morningSnack": "홍천 찰옥수수 범벅 & 사과주스",
+    "lunch": [
+      "검정콩 잡곡밥",
+      "두부 팽이버섯 된장국",
+      "치즈 닭안심 찹스테이크",
+      "오색 파프리카 감자채볶음",
+      "깍두기"
+    ],
+    "afternoonSnack": "제철 딸기(홍천산) & 쌀 롤케이크",
+    "calories": 535,
+    "originInfo": "쌀(국내산), 닭고기(무항생제 국내산), 두부(국내산 콩), 감자(강원도산)",
+    "allergyInfo": "2(우유), 5(대두), 6(밀), 15(닭고기)",
+    "imageUrl": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&auto=format&fit=crop&q=80",
+    "todayHighlight": "신선한 파프리카와 감자로 알록달록 비타민을 보충하는 목요일 건강 식단입니다."
+  },
+  {
+    "id": "meal-20260320",
+    "date": "2026-03-20",
+    "dayOfWeek": "금",
+    "morningSnack": "바삭 단호박 쌀과자 & 무가당 두유",
+    "lunch": [
+      "클로렐라 영양밥",
+      "바지락 순두부 맑은탕",
+      "수제 연어 돈가스 & 타르타르소스",
+      "새콤달콤 사과 오이생채",
+      "포기김치"
+    ],
+    "afternoonSnack": "폭신 고구마 머핀 & 오렌지 생과일",
+    "calories": 510,
+    "originInfo": "쌀(국내산), 바지락(국내산), 연어(노르웨이산), 고구마(국내산)",
+    "allergyInfo": "1(난류), 2(우유), 5(대두), 6(밀), 18(조개류)",
+    "imageUrl": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80",
+    "todayHighlight": "DHA가 풍부한 연어를 바삭하게 튀겨 맑은 조개 순두부탕과 함께 제공합니다."
+  },
+  {
+    "id": "meal-20260323",
+    "date": "2026-03-23",
+    "dayOfWeek": "월",
+    "morningSnack": "부드러운 계란죽 & 현미차",
+    "lunch": [
+      "찰흑미밥",
+      "황태 콩나물국",
+      "궁중 쇠고기 떡볶음",
+      "느타리버섯 시금치나물",
+      "백김치"
+    ],
+    "afternoonSnack": "방울토마토 & 곡물 플레인 요거트",
+    "calories": 495,
+    "originInfo": "쌀(국내산), 쇠고기(국내산 한우), 황태(강원도 인제산), 콩나물(국산콩)",
+    "allergyInfo": "1(난류), 2(우유), 5(대두), 6(밀), 16(쇠고기)",
+    "imageUrl": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&auto=format&fit=crop&q=80",
+    "todayHighlight": "주말 후 월요일, 소화가 잘되는 황태국과 달콤 쫄깃 궁중 떡볶음 식단입니다."
+  },
+  {
+    "id": "meal-20260324",
+    "date": "2026-03-24",
+    "dayOfWeek": "화",
+    "morningSnack": "친환경 배 조각 & 미숫가루 라떼",
+    "lunch": [
+      "수수밥",
+      "구수한 배추 된장국",
+      "오리 훈제 야채볶음 & 무쌈",
+      "애호박 새우살전",
+      "깍두기"
+    ],
+    "afternoonSnack": "찹쌀 경단 & 따뜻한 작두콩차",
+    "calories": 540,
+    "originInfo": "오리(국내산 무항생제), 배추(국내산), 새우(국내산), 쌀(홍천산)",
+    "allergyInfo": "5(대두), 6(밀), 9(새우)",
+    "imageUrl": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&auto=format&fit=crop&q=80",
+    "todayHighlight": "기름기를 쏙 뺀 훈제오리에 아삭한 무쌈을 곁들여 맛있게 먹는 날입니다."
+  }
+]

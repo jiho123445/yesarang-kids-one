@@ -223,14 +223,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenConsultation }) 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-900/75 via-stone-900/20 to-transparent" />
 
-                {/* Top Badge: 대문 사진 변경 트리거 */}
-                <div className="absolute top-3 left-3 z-10">
-                  <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-stone-900/70 hover:bg-stone-900 text-white text-[11px] font-bold shadow-xs backdrop-blur-xs transition-colors">
-                    <Camera className="w-3 h-3 text-amber-300" />
-                    <span>대문 사진 변경</span>
-                  </span>
-                </div>
-
                 {/* Bottom Caption & Badge */}
                 <div className="absolute bottom-3 left-3 right-3 text-white">
                   <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#F0935C] text-[11px] font-bold mb-1 shadow-xs">
@@ -270,19 +262,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenConsultation }) 
               </div>
 
               {/* Card Footer Badge */}
-              <div className="mt-3 px-2 flex items-center justify-between text-xs text-stone-600 font-medium">
+              <div className="mt-3 px-2 flex items-center text-xs text-stone-600 font-medium">
                 <span className="flex items-center text-amber-800 font-bold">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1.5" />
                   원아 모집 및 학부모 참관 상시 접수
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(true)}
-                  className="text-[#F0935C] font-bold hover:underline inline-flex items-center space-x-1 cursor-pointer"
-                >
-                  <Camera className="w-3 h-3" />
-                  <span>대문 변경</span>
-                </button>
               </div>
 
               {/* Hidden Direct File Input */}

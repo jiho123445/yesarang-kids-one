@@ -6,7 +6,6 @@ import {
   ShieldCheck,
   Smile,
   PhoneCall,
-  Camera,
   Upload,
   CheckCircle,
   X,
@@ -233,16 +232,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenConsultation }) 
                   </p>
                 </div>
 
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-stone-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4 text-white">
-                  <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-2 shadow-sm">
-                    <Camera className="w-6 h-6 text-white" />
-                  </div>
-                  <p className="text-sm font-black">대문 대표 사진 변경</p>
-                  <p className="text-[11px] text-amber-200 mt-0.5">
-                    클릭하여 사진 파일 첨부 / 추천 테마 선택 / 문구 수정
-                  </p>
-                </div>
 
                 {/* Drag over state */}
                 {isDragging && (

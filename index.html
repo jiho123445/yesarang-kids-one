@@ -56,6 +56,35 @@
       href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Pretendard:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+
+    <!-- 구조화 데이터 (Google 등에 어린이집 기본 정보를 명확히 전달) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "ChildCare",
+        "name": "홍천 예사랑어린이집",
+        "alternateName": "예사랑어린이집",
+        "url": "https://yesarang-kids.kr/",
+        "image": "https://yesarang-kids.kr/og-image.png",
+        "logo": "https://yesarang-kids.kr/icon-512.png",
+        "telephone": "+82-33-435-6312",
+        "description": "강원특별자치도 홍천군 소재 예사랑어린이집. 사랑과 신뢰로 꿈을 키우는 따뜻한 배움터.",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "연봉로 11",
+          "addressLocality": "홍천군 홍천읍",
+          "addressRegion": "강원특별자치도",
+          "postalCode": "25134",
+          "addressCountry": "KR"
+        },
+        "openingHoursSpecification": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          "opens": "07:30",
+          "closes": "19:30"
+        }
+      }
+    </script>
   </head>
   <body class="bg-[#FFFDF9] text-stone-800 antialiased selection:bg-[#F5C451]/30 selection:text-stone-900">
     <div id="root"></div>

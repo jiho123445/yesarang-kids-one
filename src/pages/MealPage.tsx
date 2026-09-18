@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { MealItem, GalleryItem, NutritionNewsletter } from '../types';
 import { useData } from '../context/DataContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface MealPageProps {
   meals: MealItem[];
@@ -32,6 +33,7 @@ const TABS = [
 
 export const MealPage: React.FC<MealPageProps> = ({ meals, gallery }) => {
   const { subtab = 'monthly' } = useParams<{ subtab?: string }>();
+  useDocumentTitle(`급식마당 - ${TABS.find(t => t.id === subtab)?.label || '이달의 식단표'}`);
   const [selectedMealId, setSelectedMealId] = useState<string>(meals[0]?.id || '');
   const {
     isAdmin,

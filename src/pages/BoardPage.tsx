@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Search, Bell, Mail, FileText, Paperclip, Eye, Calendar, Sparkles, Plus, Edit2, Trash2 } from 'lucide-react';
 import { NoticeItem, NewsletterItem } from '../types';
 import { useData } from '../context/DataContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface BoardPageProps {
   notices: NoticeItem[];
@@ -24,6 +25,7 @@ export const BoardPage: React.FC<BoardPageProps> = ({
   onSelectNewsletter,
 }) => {
   const { subtab = 'notice' } = useParams<{ subtab?: string }>();
+  useDocumentTitle(`알림마당 - ${TABS.find(t => t.id === subtab)?.label || '공지사항'}`);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const { isAdmin, openAdminWithTab, deleteNotice, deleteNewsletter, institution } = useData();

@@ -26,6 +26,7 @@ import introDetails from '../data/introDetails.json';
 import { MascotSun, MascotBear } from '../components/common/Illustrations';
 import { useData } from '../context/DataContext';
 import { handleFileUpload } from '../utils/fileUpload';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const TABS = [
   { id: 'greeting', label: '인사말', path: '/intro/greeting' },
@@ -41,6 +42,12 @@ const DEFAULT_DIRECTOR_PHOTO = 'https://images.unsplash.com/photo-1573496359142-
 export const IntroPage: React.FC = () => {
   const { subtab = 'greeting' } = useParams<{ subtab?: string }>();
   const { institution, isAdmin, openAdminWithTab, updateInstitution } = useData();
+
+  useDocumentTitle(
+    TABS.find(t => t.id === subtab)?.label
+      ? `어린이집 소개 - ${TABS.find(t => t.id === subtab)?.label}`
+      : '어린이집 소개'
+  );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const modalFileInputRef = useRef<HTMLInputElement>(null);

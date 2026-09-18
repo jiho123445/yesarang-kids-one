@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Calendar as CalendarIcon, Camera, Video, ChevronLeft, ChevronRight, Clock, MapPin, Heart, Plus, Edit2, Trash2 } from 'lucide-react';
 import { CalendarEvent, GalleryItem } from '../types';
 import { useData } from '../context/DataContext';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 interface EventsPageProps {
   events: CalendarEvent[];
@@ -22,6 +23,7 @@ export const EventsPage: React.FC<EventsPageProps> = ({
   onSelectGalleryItem,
 }) => {
   const { subtab = 'monthly' } = useParams<{ subtab?: string }>();
+  useDocumentTitle(`행사와 일정 - ${TABS.find(t => t.id === subtab)?.label || '월간 행사'}`);
   const [selectedMonth, setSelectedMonth] = useState<number>(3);
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const { isAdmin, openAdminWithTab, deleteEvent, deleteGalleryItem } = useData();

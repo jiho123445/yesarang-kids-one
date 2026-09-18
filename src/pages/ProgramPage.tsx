@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { BookOpen, Trees, Sparkles, ShieldCheck, CheckCircle2, Calendar } from 'lucide-react';
 import introDetails from '../data/introDetails.json';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 
 const TABS = [
   { id: 'curriculum', label: '주요 교육과정', path: '/program/curriculum' },
@@ -11,6 +12,8 @@ const TABS = [
 
 export const ProgramPage: React.FC = () => {
   const { subtab = 'curriculum' } = useParams<{ subtab?: string }>();
+  useDocumentTitle(`교육 프로그램 - ${TABS.find(t => t.id === subtab)?.label || '주요 교육과정'}`);
+
 
   return (
     <div className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

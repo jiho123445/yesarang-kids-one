@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
-import { KeyRound, RotateCcw, Download, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { KeyRound, RotateCcw, Download, ShieldCheck, CheckCircle2, AlertCircle, Hammer } from 'lucide-react';
 import { useData } from '../../../context/DataContext';
 import { ConfirmDialog } from '../ConfirmDialog';
 
 export const SettingsTab: React.FC = () => {
-  const { changePassword, resetToDefaults, notices, newsletters, meals, gallery, events, institution, introDetails } = useData();
+  const { changePassword, resetToDefaults, notices, newsletters, meals, gallery, events, institution, introDetails, maintenance, updateMaintenance } = useData();
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [pwMessage, setPwMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+
+  // 공사중 안내 문구 입력창 — Firestore 실시간 값과 별개로 타이핑 중에는 로컬 draft를 유지합니다.
+  const [maintenanceMsgDraft, setMaintenanceMsgDraft] = useState(maintenance.message ?? '');
+  const [maintenanceSaved, setMaintenanceSaved] = useState(false);
+
+  React.useEffect(() => {
+    setMaintenanceMsgDraft(maintenance.message ?? '');
+  }, [maintenance.message]);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +70,71 @@ export const SettingsTab: React.FC = () => {
         <p className="text-xs text-stone-500">
           관리자 접속 비밀번호를 안전하게 관리하고 전체 데이터를 백업하거나 초기화할 수 있습니다.
         </p>
+      </div>
+
+      {/* 홈페이지 공사중 모드 */}
+      <div
+        className={`p-5 rounded-2xl border shadow-2xs space-y-3 ${
+          maintenance.enabled ? 'bg-rose-50/60 border-rose-200' : 'bg-white border-stone-200'
+        }`}
+      >
+        <div className="flex items-center justify-between flex-wrap gap-3 pb-2 border-b border-stone-100">
+          <div className="flex items-center space-x-2">
+            <Hammer className={`w-5 h-5 ${maintenance.enabled ? 'text-rose-600' : 'text-amber-600'}`} />
+            <div>
+              <h4 className="text-sm font-black text-stone-900">홈페이지 공사중 모드</h4>
+              <p className="text-[11px] text-stone-500">
+                켜면 일반 방문자에게는 안내 화면만 보이고, 관리자로 로그인하면 평소처럼 정상 화면이 보입니다.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => updateMaintenance({ enabled: !maintenance.enabled })}
+            className={`inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer ${
+              maintenance.enabled
+                ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                : 'bg-stone-800 hover:bg-stone-700 text-white'
+            }`}
+          >
+            <Hammer className="w-4 h-4" />
+            <span>{maintenance.enabled ? '공사중 화면 끄기 (정상 운영으로 전환)' : '공사중 화면 켜기'}</span>
+          </button>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-stone-700">방문자에게 보여줄 안내 문구 (비워두면 기본 문구 사용)</label>
+          <textarea
+            value={maintenanceMsgDraft}
+            onChange={e => {
+              setMaintenanceMsgDraft(e.target.value);
+              setMaintenanceSaved(false);
+            }}
+            rows={3}
+            placeholder="예) 더 좋은 모습으로 찾아뵙기 위해 홈페이지를 정비하고 있습니다."
+            className="w-full p-2.5 rounded-xl border border-stone-200 text-xs"
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={async () => {
+                await updateMaintenance({ message: maintenanceMsgDraft });
+                setMaintenanceSaved(true);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold transition-colors cursor-pointer"
+            >
+              문구 저장
+            </button>
+            {maintenanceSaved && <span className="text-[11px] text-emerald-700 font-semibold">저장되었습니다.</span>}
+          </div>
+        </div>
+
+        {maintenance.enabled && (
+          <p className="text-[11px] font-bold text-rose-700">
+            ⚠ 현재 공사중 화면이 방문자에게 노출되고 있습니다.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

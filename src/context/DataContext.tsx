@@ -36,6 +36,7 @@ import {
   InstitutionClass,
   AdminTab,
   NutritionNewsletter,
+  MaintenanceSettings,
 } from '../types';
 
 // 최초 시딩 전 화면이 비지 않도록 보여줄 기본값(원본 목업 JSON) — 실제 시딩은 scripts/seed-firestore.ts 로 합니다.
@@ -61,7 +62,10 @@ const COLLECTIONS = {
 const SETTINGS_DOC = {
   INSTITUTION: doc(db, 'settings', 'institution'),
   INTRO: doc(db, 'settings', 'intro'),
+  MAINTENANCE: doc(db, 'settings', 'maintenance'),
 } as const;
+
+const DEFAULT_MAINTENANCE: MaintenanceSettings = { enabled: false, message: '' };
 
 /**
  * Firestore는 필드 값으로 undefined를 허용하지 않습니다 (addDoc/updateDoc/setDoc이 예외를 던짐).
@@ -95,6 +99,8 @@ interface DataContextType {
   partners: PartnerOrg[];
   institution: InstitutionData;
   introDetails: IntroDetailsData;
+  /** 홈페이지 전체 공사중 모드 설정 (settings/maintenance) */
+  maintenance: MaintenanceSettings;
 
   // Admin Auth & UI states
   isAdmin: boolean;
@@ -151,6 +157,8 @@ interface DataContextType {
 
   // CRUD Institution & Intro
   updateInstitution: (data: Partial<InstitutionData>) => Promise<void>;
+  /** 공사중 모드 ON/OFF 및 안내 문구 변경 */
+  updateMaintenance: (data: Partial<MaintenanceSettings>) => Promise<void>;
   updateClasses: (classes: InstitutionClass[], renameMap?: Record<string, string>) => Promise<void>;
   updateIntroDetails: (data: Partial<IntroDetailsData>) => Promise<void>;
   addTeacher: (teacher: Omit<TeacherInfo, 'id'>) => Promise<void>;
@@ -219,6 +227,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsub = onSnapshot(SETTINGS_DOC.INTRO, snap => {
       if (snap.exists()) setIntroDetails(snap.data() as IntroDetailsData);
     }, error => console.error('[firestore] settings/intro 구독 오류', error));
+    return unsub;
+  }, []);
+
+  const [maintenance, setMaintenance] = useState<MaintenanceSettings>(DEFAULT_MAINTENANCE);
+
+  useEffect(() => {
+    const unsub = onSnapshot(SETTINGS_DOC.MAINTENANCE, snap => {
+      setMaintenance(snap.exists() ? (snap.data() as MaintenanceSettings) : DEFAULT_MAINTENANCE);
+    }, error => console.error('[firestore] settings/maintenance 구독 오류', error));
     return unsub;
   }, []);
 
@@ -388,6 +405,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await setDoc(SETTINGS_DOC.INSTITUTION, stripUndefined(data as Record<string, unknown>), { merge: true });
   };
 
+  const updateMaintenance = async (data: Partial<MaintenanceSettings>) => {
+    await setDoc(SETTINGS_DOC.MAINTENANCE, stripUndefined(data as Record<string, unknown>), { merge: true });
+  };
+
   const updateClasses = async (newClasses: InstitutionClass[], renameMap?: Record<string, string>) => {
     await setDoc(SETTINGS_DOC.INSTITUTION, { classes: newClasses }, { merge: true });
 
@@ -459,6 +480,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         partners,
         institution,
         introDetails,
+        maintenance,
 
         isAdmin,
         isAdminDashboardOpen,
@@ -503,6 +525,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         deleteEvent,
 
         updateInstitution,
+        updateMaintenance,
         updateClasses,
         updateIntroDetails,
         addTeacher,

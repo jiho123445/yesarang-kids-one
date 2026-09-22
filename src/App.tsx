@@ -12,6 +12,7 @@ import { ProgramPage } from './pages/ProgramPage';
 import { BoardPage } from './pages/BoardPage';
 import { EventsPage } from './pages/EventsPage';
 import { MealPage } from './pages/MealPage';
+import { MaintenancePage } from './pages/MaintenancePage';
 
 // Admin CMS Components
 import { DataProvider, useData } from './context/DataContext';
@@ -47,7 +48,10 @@ const ScrollToTop: React.FC = () => {
 
 // Internal App Content connected to DataContext
 const AppContent: React.FC = () => {
-  const { notices, newsletters, meals, gallery, events, likeGalleryItem } = useData();
+  const { notices, newsletters, meals, gallery, events, likeGalleryItem, maintenance, isAdmin } = useData();
+  // 공사중 모드: 관리자로 로그인하지 않은 일반 방문자에게만 공사중 화면을 보여줍니다.
+  // 헤더/푸터의 "관리자" 버튼은 이 화면에서도 그대로 노출되므로 로그인 후 정상 화면으로 전환됩니다.
+  const showMaintenancePage = maintenance.enabled && !isAdmin;
   const [partners] = useState<PartnerOrg[]>(partnersData as PartnerOrg[]);
 
   // Modal states
@@ -102,6 +106,9 @@ const AppContent: React.FC = () => {
 
       {/* 3. Main Content Area */}
       <main className="flex-1">
+        {showMaintenancePage ? (
+          <MaintenancePage />
+        ) : (
         <Routes>
           <Route
             path="/"
@@ -163,6 +170,7 @@ const AppContent: React.FC = () => {
           {/* Fallback to Home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        )}
       </main>
 
       {/* 4. Footer with policies, contact, and visitor statistics */}

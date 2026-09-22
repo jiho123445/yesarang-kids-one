@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ShieldCheck, LayoutDashboard, RotateCcw, LogOut, PlusCircle, Sparkles } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, RotateCcw, LogOut, PlusCircle, Sparkles, Hammer } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { ConfirmDialog } from './ConfirmDialog';
 
 export const AdminToolbar: React.FC = () => {
-  const { isAdmin, setIsAdminDashboardOpen, logout, resetToDefaults, openAdminWithTab } = useData();
+  const { isAdmin, setIsAdminDashboardOpen, logout, resetToDefaults, openAdminWithTab, maintenance, updateMaintenance } = useData();
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
   if (!isAdmin) return null;
@@ -42,6 +42,19 @@ export const AdminToolbar: React.FC = () => {
             >
               <PlusCircle className="w-3.5 h-3.5 text-amber-400" />
               <span>새 글 등록</span>
+            </button>
+
+            <button
+              onClick={() => updateMaintenance({ enabled: !maintenance.enabled })}
+              className={`inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border transition-colors cursor-pointer ${
+                maintenance.enabled
+                  ? 'bg-rose-500 hover:bg-rose-600 text-white border-rose-400'
+                  : 'bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white border-stone-700'
+              }`}
+              title="방문자에게 공사중 화면을 보여줄지 전환합니다 (관리자는 항상 정상 화면을 봅니다)"
+            >
+              <Hammer className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{maintenance.enabled ? '공사중 해제' : '공사중 모드'}</span>
             </button>
 
             <button

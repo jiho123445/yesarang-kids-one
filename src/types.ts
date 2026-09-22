@@ -193,3 +193,10 @@ export interface IntroDetailsData {
 
 export type AdminTab = 'notices' | 'newsletters' | 'gallery' | 'meals' | 'events' | 'intro' | 'settings';
 
+/** 홈페이지 전체 공사중 모드 (settings/maintenance 단일 문서) */
+export interface MaintenanceSettings {
+  enabled: boolean;
+  /** 공사중 화면에 표시할 안내 문구 (비워두면 기본 문구 사용) */
+  message?: string;
+}
+

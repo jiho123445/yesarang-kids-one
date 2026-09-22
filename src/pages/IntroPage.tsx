@@ -1,10 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  Heart,
-  Sprout,
-  Sparkles,
-  Smile,
   MapPin,
   Phone,
   Bus,
@@ -22,11 +18,11 @@ import {
   Image as ImageIcon,
   CheckCircle,
 } from 'lucide-react';
-import introDetails from '../data/introDetails.json';
 import { MascotSun, MascotBear } from '../components/common/Illustrations';
 import { useData } from '../context/DataContext';
 import { handleFileUpload } from '../utils/fileUpload';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { getPhilosophyIcon, getPhilosophyColor } from '../data/philosophyOptions';
 
 const TABS = [
   { id: 'greeting', label: '인사말', path: '/intro/greeting' },
@@ -41,7 +37,7 @@ const DEFAULT_DIRECTOR_PHOTO = 'https://images.unsplash.com/photo-1573496359142-
 
 export const IntroPage: React.FC = () => {
   const { subtab = 'greeting' } = useParams<{ subtab?: string }>();
-  const { institution, isAdmin, openAdminWithTab, updateInstitution } = useData();
+  const { institution, introDetails, isAdmin, openAdminWithTab, updateInstitution } = useData();
 
   useDocumentTitle(
     TABS.find(t => t.id === subtab)?.label
@@ -344,36 +340,46 @@ export const IntroPage: React.FC = () => {
         <div className="space-y-8 animate-in fade-in duration-200">
           <div className="text-center max-w-2xl mx-auto mb-6">
             <h2 className="text-xl sm:text-2xl font-black text-stone-900 mb-2">
-              예사랑 4대 핵심 교육 가치
+              예사랑 핵심 교육 가치
             </h2>
             <p className="text-sm text-stone-600">
               아이들의 웃음과 행복이 피어나는 건강한 교육 철학을 실천합니다.
             </p>
+            {isAdmin && (
+              <button
+                onClick={() => openAdminWithTab('intro', { _subTab: 'philosophy' })}
+                className="mt-4 inline-flex items-center space-x-1.5 px-4 py-2 rounded-2xl bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold text-xs shadow-sm transition-all cursor-pointer"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>교육철학 편집</span>
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(institution.philosophy || []).map((item, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-stone-200 flex flex-col justify-between hover:shadow-lg transition-all"
-              >
-                <div>
-                  <div className="flex items-center space-x-3 mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-[#F0935C]">
-                      {index === 0 && <Heart className="w-6 h-6 fill-[#F0935C]" />}
-                      {index === 1 && <Sprout className="w-6 h-6 text-emerald-600" />}
-                      {index === 2 && <Sparkles className="w-6 h-6 text-amber-500" />}
-                      {index === 3 && <Smile className="w-6 h-6 text-rose-500" />}
+            {(institution.philosophy || []).map((item, index) => {
+              const PhilosophyIcon = getPhilosophyIcon(item.icon);
+              const colorOpt = getPhilosophyColor(item.color);
+              return (
+                <div
+                  key={index}
+                  className="bg-white rounded-3xl p-6 sm:p-8 shadow-md border border-stone-200 flex flex-col justify-between hover:shadow-lg transition-all"
+                >
+                  <div>
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${colorOpt.bg} ${colorOpt.text}`}>
+                        <PhilosophyIcon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-stone-400">VALUE 0{index + 1}</span>
+                        <h3 className="text-lg sm:text-xl font-black text-stone-900">{item.title}</h3>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-xs font-bold text-stone-400">VALUE 0{index + 1}</span>
-                      <h3 className="text-lg sm:text-xl font-black text-stone-900">{item.title}</h3>
-                    </div>
+                    <p className="text-stone-600 text-sm sm:text-base leading-relaxed">{item.desc}</p>
                   </div>
-                  <p className="text-stone-600 text-sm sm:text-base leading-relaxed">{item.desc}</p>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Class organization list */}
@@ -385,7 +391,7 @@ export const IntroPage: React.FC = () => {
               {isAdmin && (
                 <button
                   type="button"
-                  onClick={() => openAdminWithTab('intro')}
+                  onClick={() => openAdminWithTab('intro', { _subTab: 'classes' })}
                   className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100 text-stone-800 border border-amber-300 text-xs font-bold shadow-2xs transition-colors cursor-pointer self-center sm:self-auto"
                 >
                   <Edit2 className="w-3.5 h-3.5 text-[#F0935C]" />
@@ -412,9 +418,20 @@ export const IntroPage: React.FC = () => {
       {/* Subtab 3: 연혁 */}
       {subtab === 'history' && (
         <div className="max-w-3xl mx-auto bg-white rounded-3xl p-6 sm:p-10 shadow-md border border-stone-200 animate-in fade-in duration-200">
-          <h2 className="text-xl sm:text-2xl font-black text-stone-900 mb-6 text-center">
-            {institution.name} 발자취
-          </h2>
+          <div className="flex flex-col items-center gap-3 mb-6">
+            <h2 className="text-xl sm:text-2xl font-black text-stone-900 text-center">
+              {institution.name} 발자취
+            </h2>
+            {isAdmin && (
+              <button
+                onClick={() => openAdminWithTab('intro', { _subTab: 'history' })}
+                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-2xl bg-amber-500 hover:bg-amber-600 text-stone-900 font-bold text-xs shadow-sm transition-all cursor-pointer"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+                <span>연혁 편집</span>
+              </button>
+            )}
+          </div>
           <div className="relative border-l-2 border-[#F0935C]/30 ml-4 sm:ml-6 pl-6 sm:pl-8 space-y-6">
             {introDetails.history.map((h, i) => (
               <div key={i} className="relative group">
